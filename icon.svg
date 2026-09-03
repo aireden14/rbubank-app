@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.7" y2="1">
+      <stop offset="0" stop-color="#8f78ff"/>
+      <stop offset="0.5" stop-color="#5a37e8"/>
+      <stop offset="1" stop-color="#1c0f5e"/>
+    </linearGradient>
+    <radialGradient id="gloss" cx="0.28" cy="0.1" r="0.85">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.55"/>
+      <stop offset="0.45" stop-color="#ffffff" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="mark" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#dcd6ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="114" fill="url(#bg)"/>
+  <rect width="512" height="512" rx="114" fill="url(#gloss)"/>
+  <rect x="6" y="6" width="500" height="500" rx="110" fill="none" stroke="#ffffff" stroke-opacity="0.22" stroke-width="3"/>
+  <path d="M170 132h96c50 0 84 30 84 74 0 33-19 57-51 68l58 106h-72l-49-95h-31v95h-35V132zm35 34v85h58c30 0 49-16 49-43 0-26-19-42-49-42h-58z" fill="url(#mark)"/>
+  <circle cx="352" cy="372" r="26" fill="#34e0a1" fill-opacity="0.9"/>
+</svg>

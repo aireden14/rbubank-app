@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+<meta name="theme-color" content="#000000" />
+<title>RBUBANK — one account for everything money</title>
+<meta name="description" content="RBUBANK — a mobile-first neobank MVP: multi-currency accounts, instant transfers, cards, vaults, FX and analytics." />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta property="og:title" content="RBUBANK" />
+<meta property="og:description" content="One account for everything money. Mobile-first neobank MVP." />
+<meta property="og:type" content="website" />
+<link rel="icon" href="icon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="icon.svg" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="aurora" aria-hidden="true"></div>
+  <div id="app">
+    <main id="view" role="main"></main>
+    <nav id="tabbar" class="tabbar is-hidden" aria-label="Primary"></nav>
+  </div>
+  <div id="sheet-root"></div>
+  <div id="toast-root" aria-live="polite"></div>
+
+  <script src="src/data.js"></script>
+  <script src="src/ui.js"></script>
+  <script src="src/views-money.js"></script>
+  <script src="src/views-flows.js"></script>
+  <script src="src/views-account.js"></script>
+  <script src="src/app.js"></script>
+</body>
+</html>
