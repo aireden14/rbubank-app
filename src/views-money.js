@@ -30,7 +30,7 @@ window.RBU.views = window.RBU.views || {};
 
   /* Card payments show the merchant's initials the way a statement does;
      everything else keeps its category icon, so the two read differently. */
-  var ICON_CATEGORIES = { income: 1, transfer: 1, exchange: 1, savings: 1, crypto: 1, cash: 1, fees: 1, cashback: 1, utilities: 1, housing: 1 };
+  var ICON_CATEGORIES = { salary: 1, income: 1, transfer: 1, exchange: 1, savings: 1, crypto: 1, cash: 1, fees: 1, cashback: 1, utilities: 1, housing: 1, insurance: 1, taxes: 1 };
 
   function rowGlyph(t) {
     if (ICON_CATEGORIES[t.category] || t.amount > 0) return ui.glyphFor(t);
@@ -46,13 +46,18 @@ window.RBU.views = window.RBU.views || {};
   }
 
   function txRow(t) {
-    return h("button.row", {
+    var isSalary = t.category === "salary";
+    return h("button", {
+      class: "row" + (isSalary ? " is-salary" : ""),
       type: "button",
-      onclick: function () { txSheet(t); },
+      onclick: function () { NS.app.go("receipt", { id: t.id }); },
     }, [
       rowGlyph(t),
       h("div.row-main", {}, [
-        h("div.row-title", { class: t.status === "declined" ? "is-void" : "", text: t.title }),
+        h("div.row-title", {}, [
+          h("span", { class: "title-text" + (t.status === "declined" ? " is-void" : ""), text: t.title }),
+          isSalary ? h("span.tag", { text: t.stream === "bonus" ? "Bonus" : "Salary" }) : null,
+        ]),
         h("div.row-sub", { class: t.status === "declined" ? "is-bad" : "" }, [
           t.status === "pending" ? h("span.status-dot") : null,
           t.status === "declined" ? h("span.status-dot.is-bad") : null,
@@ -83,73 +88,6 @@ window.RBU.views = window.RBU.views || {};
       out.push(h("div.demo-note", { text: "Nothing here yet." }));
     }
     return h("div.rows", {}, out);
-  }
-
-  function txSheet(t) {
-    var app = NS.app;
-    var cur = accCur(t.account);
-    var acc = app.account(t.account);
-    var cat = data.categories[t.category] || { label: "Other" };
-    var STATUS = { pending: "Pending", declined: "Declined", completed: "Completed" };
-    var rows = [
-      ["Status", STATUS[t.status] || "Completed"],
-      ["Date", ui.fullDate(t.date)],
-      ["Method", t.method],
-      ["Account", acc.name + " · " + acc.currency],
-      ["Category", cat.label],
-    ];
-    if (t.card) rows.push(["Card", "RBU •••• " + t.card]);
-    if (t.city) rows.push(["Where", t.city]);
-    if (t.fee) rows.push(["Fee", ui.money(-t.fee, cur)]);
-    if (t.fx) rows.push(["Exchange rate", "1 " + t.fx.from + " = " + t.fx.rate.toFixed(4) + " " + t.fx.to]);
-    if (t.reason) rows.push(["Why it failed", t.reason]);
-    if (t.note) rows.push(["Note", t.note]);
-    rows.push(["Reference", t.ref]);
-
-    var body = h("div.stack", {}, [
-      h("div", { style: "display:flex;flex-direction:column;align-items:center;gap:10px;padding:4px 0 6px" }, [
-        ui.glyphFor(t),
-        h("div", { style: "font-size:15px;font-weight:640", text: t.title }),
-        h("div", {
-          class: t.amount > 0 ? "credit" : "",
-          style: "font-size:38px;font-weight:700;letter-spacing:-0.04em;font-variant-numeric:tabular-nums",
-          text: ui.money(t.amount, cur, { signed: t.amount > 0 }),
-        }),
-        h("div.muted", { style: "font-size:13.5px", text: t.subtitle }),
-      ]),
-      h("div.rows", {}, rows.map(function (r) {
-        return h("div.row", {}, [
-          h("div.row-main", {}, h("div.row-sub", { style: "margin:0", text: r[0] })),
-          h("div", { class: "row-value selectable", style: "font-size:15px;font-weight:600;max-width:58%;text-align:right", text: r[1] }),
-        ]);
-      })),
-      h("div.actions", {}, [
-        h("button.btn.btn-ghost", {
-          type: "button",
-          onclick: function () {
-            ui.closeSheet();
-            if (t.amount < 0) {
-              NS.app.flow = { type: "send", step: "amount", recipient: { name: t.title, detail: t.subtitle, bank: "" }, amount: String(Math.abs(t.amount)) };
-              NS.app.go("send");
-            } else {
-              ui.copy(t.ref, "Reference copied");
-            }
-          },
-          text: t.amount < 0 ? "Repeat this payment" : "Copy reference",
-        }),
-        h("button.btn.btn-ghost", {
-          type: "button",
-          onclick: function () { ui.closeSheet(); ui.toast("Receipt exported", "Saved to your documents (demo)"); },
-          text: "Export receipt",
-        }),
-        h("button.btn.btn-ghost.btn-danger", {
-          type: "button",
-          onclick: function () { ui.closeSheet(); ui.toast("Dispute opened", "Our team replies within 2 hours"); },
-          text: "Report an issue",
-        }),
-      ]),
-    ]);
-    ui.sheet(null, null, body);
   }
 
   function quick(label, iconName, onclick) {
@@ -304,13 +242,17 @@ window.RBU.views = window.RBU.views || {};
         quick("Vault", "vault", function () { app.go("vault"); }),
       ]),
 
-      pending ? h("div.card", { style: "border-color:color-mix(in srgb, var(--credit) 30%, transparent)" }, [
-        h("div.card-title", { text: "Incoming" }),
+      pending ? h("button.card", {
+        type: "button",
+        style: "border-color:color-mix(in srgb, var(--credit) 34%, transparent);width:100%;text-align:left;font-family:inherit;color:inherit;cursor:pointer",
+        onclick: function () { app.go("receipt", { id: pending.id }); },
+      }, [
+        h("div.card-title", { class: "credit", text: pending.category === "salary" ? "Salary arriving today" : "Incoming" }),
         h("div", { style: "display:flex;align-items:center;gap:12px" }, [
-          h("div.glyph.is-credit", {}, ui.icon("download", 20)),
+          h("div.glyph.is-credit", {}, ui.icon(pending.category === "salary" ? "wallet" : "download", 20)),
           h("div.row-main", {}, [
             h("div.row-title", { text: pending.title }),
-            h("div.row-sub", { text: "Arriving today · " + pending.method }),
+            h("div.row-sub", { text: pending.subtitle + " · " + pending.method.split(" · ")[0] }),
           ]),
           h("div.row-value.credit", { text: ui.money(pending.amount, "USD", { signed: true }) }),
         ]),
@@ -320,7 +262,7 @@ window.RBU.views = window.RBU.views || {};
         h("div.stat", {}, [
           h("div.stat-label", { text: "Money in · 30 days" }),
           h("div.stat-value.credit", { text: ui.money(inMonth, "USD", { round: true }) }),
-          h("div.stat-sub", { text: "12-month income " + ui.money(stats.salary, "USD", { round: true }) }),
+          h("div.stat-sub", { text: "Salary · 12 months " + ui.money(stats.salary, "USD", { round: true }) }),
         ]),
         h("div.stat", {}, [
           h("div.stat-label", { text: "Money out · 30 days" }),
@@ -353,14 +295,7 @@ window.RBU.views = window.RBU.views || {};
         txList(ledger, { limit: 7 }),
       ]),
 
-      h("div.card", {}, [
-        h("div.card-title", { text: "Income · last 12 months" }),
-        incomeChart(app),
-        h("div", { style: "display:flex;justify-content:space-between;margin-top:12px" }, [
-          h("div.muted", { style: "font-size:13.5px", text: "Contract income" }),
-          h("div", { style: "font-size:15px;font-weight:680", text: ui.money(stats.salary, "USD", { round: true }) }),
-        ]),
-      ]),
+      salaryCard(app, stats),
 
       h("button.card", { type: "button", style: "text-align:left;width:100%;cursor:pointer;color:inherit;font-family:inherit", onclick: function () { app.go("vault"); } }, [
         h("div", { style: "display:flex;align-items:center;gap:12px" }, [
@@ -390,12 +325,44 @@ window.RBU.views = window.RBU.views || {};
     return sum;
   }
 
-  /* Twelve income bars — the single most-asked question in a bank demo:
+  /* The payroll card: when the next salary lands, what the last one was, and
+     twelve bars proving the rhythm. This is the screen a payroll client is
+     being sold, so it says "salary" in every line. */
+  function salaryCard(app, stats) {
+    /* The monthly run, not a bonus that happened to land the same morning. */
+    var runs = app.ledger().filter(function (t) { return t.stream === "salary" && t.status === "completed"; });
+    var last = runs[0];
+    var next = data.employer.payDay + " Oct 2026";
+    return h("button.card", {
+      type: "button",
+      style: "width:100%;text-align:left;font-family:inherit;color:inherit;cursor:pointer",
+      onclick: function () { app.period = "1y"; app.filter = "salary"; app.tab("activity"); },
+    }, [
+      h("div", { style: "display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px" }, [
+        h("div", {}, [
+          h("div.card-title", { style: "margin:0", text: "Salary · " + data.employer.name }),
+          h("div", { style: "font-size:13.5px;color:var(--text-2);margin-top:5px", text: "Paid on the " + data.employer.payDay + "th · next " + next }),
+        ]),
+        h("span.tag", { text: "Payroll" }),
+      ]),
+      incomeChart(app),
+      h("div", { style: "display:flex;justify-content:space-between;margin-top:14px;align-items:baseline" }, [
+        h("div.muted", { style: "font-size:13.5px", text: "Net salary · 12 months" }),
+        h("div", { style: "font-size:17px;font-weight:700", text: ui.money(stats.salary, "USD", { round: true }) }),
+      ]),
+      last ? h("div", { style: "display:flex;justify-content:space-between;margin-top:4px" }, [
+        h("div.muted", { style: "font-size:13px", text: "Last salary · " + ui.dayLabel(last.date) }),
+        h("div.credit", { style: "font-size:13.5px;font-weight:640", text: ui.money(last.amount, "USD", { signed: true }) }),
+      ]) : null,
+    ]);
+  }
+
+  /* Twelve salary bars — the single most-asked question in a payroll demo:
      "does money actually arrive here, and how regularly?" */
   function incomeChart(app) {
     var buckets = {};
     app.ledger().forEach(function (t) {
-      if (t.stream !== "contract" || t.status !== "completed") return;
+      if (t.category !== "salary" || t.stream !== "salary" || t.status !== "completed") return;
       var k = ui.monthKey(t.date);
       buckets[k] = (buckets[k] || 0) + t.amount;
     });
@@ -414,7 +381,8 @@ window.RBU.views = window.RBU.views || {};
 
   var FILTERS = [
     { id: "all", label: "All" },
-    { id: "income", label: "Income" },
+    { id: "salary", label: "Salary" },
+    { id: "income", label: "Other income" },
     { id: "card", label: "Card" },
     { id: "subs", label: "Subscriptions" },
     { id: "transfer", label: "Transfers" },
@@ -425,12 +393,61 @@ window.RBU.views = window.RBU.views || {};
   ];
 
   var PERIODS = [
+    { id: "7d", label: "7D", long: "last 7 days" },
     { id: "1m", label: "1M", long: "last month" },
     { id: "3m", label: "3M", long: "last 3 months" },
     { id: "6m", label: "6M", long: "last 6 months" },
     { id: "1y", label: "1Y", long: "last 12 months" },
     { id: "all", label: "All", long: "all time" },
   ];
+
+  /* Opening the ledger shows the last week. Reaching back further pulls in
+     hundreds of rows, so those periods load rather than appear. */
+  var HEAVY = { "6m": 1, "1y": 1, all: 1 };
+
+  function periodPicker(app, onPick) {
+    return h("div.segmented", {}, PERIODS.map(function (p) {
+      return h("button", {
+        class: "segment" + (app.period === p.id ? " is-on" : ""),
+        type: "button",
+        text: p.label,
+        onclick: function () {
+          if (app.period === p.id) return;
+          ui.haptic("light");
+          app.period = p.id;
+          app.listLimit = 60;
+          if (HEAVY[p.id]) {
+            app.loading = true;
+            app.render();
+            setTimeout(function () { app.loading = false; app.render(); }, 900);
+          } else {
+            app.render();
+          }
+          if (onPick) onPick(p.id);
+        },
+      });
+    }));
+  }
+
+  /* Skeleton rows: the loading state has to look like the thing that is
+     coming, not like a spinner on an empty screen. */
+  function skeletonList(rows) {
+    var out = [];
+    for (var i = 0; i < (rows || 8); i++) {
+      out.push(h("div.skeleton-row", {}, [
+        h("div.sk.sk-glyph"),
+        h("div.sk-main", {}, [
+          h("div.sk.sk-line", { style: "width:" + (46 + ((i * 13) % 34)) + "%" }),
+          h("div.sk.sk-line.is-thin", { style: "width:" + (28 + ((i * 7) % 26)) + "%" }),
+        ]),
+        h("div.sk.sk-amount"),
+      ]));
+    }
+    return h("div", {}, [
+      h("div.loading-note", {}, [h("span.spinner"), "Loading your history…"]),
+      h("div.rows", {}, out),
+    ]);
+  }
 
   function matches(t, filter, query) {
     if (query) {
@@ -439,6 +456,7 @@ window.RBU.views = window.RBU.views || {};
       if (hay.indexOf(q) === -1) return false;
     }
     if (filter === "all") return true;
+    if (filter === "salary") return t.category === "salary";
     if (filter === "income") return t.amount > 0 && (t.category === "income" || t.category === "cashback");
     if (filter === "card") return (t.method || "").indexOf("ard") > -1;
     if (filter === "subs") return t.category === "subscriptions" || t.category === "software" || (t.method || "").indexOf("Direct debit") > -1;
@@ -484,6 +502,7 @@ window.RBU.views = window.RBU.views || {};
     var summaryWrap = h("div.stat-grid", {});
 
     function paintList() {
+      if (app.loading) { ui.clear(listWrap); listWrap.appendChild(skeletonList(9)); return; }
       var next = current();
       ui.clear(listWrap);
       listWrap.appendChild(txList(next, { limit: app.listLimit }));
@@ -499,6 +518,12 @@ window.RBU.views = window.RBU.views || {};
     }
 
     function paintSummary(next) {
+      if (app.loading) {
+        ui.clear(summaryWrap);
+        summaryWrap.appendChild(h("div.stat", {}, [h("div.sk.sk-line", { style: "width:52%" }), h("div.sk.sk-value")]));
+        summaryWrap.appendChild(h("div.stat", {}, [h("div.sk.sk-line", { style: "width:40%" }), h("div.sk.sk-value")]));
+        return;
+      }
       var list = next || current();
       var t = summarise(list);
       ui.clear(summaryWrap);
@@ -549,14 +574,7 @@ window.RBU.views = window.RBU.views || {};
           oninput: function (e) { app.query = e.target.value; app.listLimit = 60; paintList(); },
         }),
       ]),
-      h("div.segmented", {}, PERIODS.map(function (p) {
-        return h("button", {
-          class: "segment" + (app.period === p.id ? " is-on" : ""),
-          type: "button",
-          text: p.label,
-          onclick: function () { app.period = p.id; app.listLimit = 60; ui.haptic("light"); app.render(); },
-        });
-      })),
+      periodPicker(app),
       h("div.scroll-row", {}, FILTERS.map(function (f) {
         return h("button", {
           class: "pill" + (app.filter === f.id ? " is-on" : ""),
@@ -740,14 +758,7 @@ window.RBU.views = window.RBU.views || {};
         h("div.eyebrow", { text: periodLabel(app.period) }),
         h("h1.head-title", { text: "Analytics" }),
       ])),
-      h("div.segmented", {}, PERIODS.map(function (p) {
-        return h("button", {
-          class: "segment" + (app.period === p.id ? " is-on" : ""),
-          type: "button",
-          text: p.label,
-          onclick: function () { app.period = p.id; ui.haptic("light"); app.render(); },
-        });
-      })),
+      periodPicker(app),
       h("div.stat-grid", {}, [
         h("div.stat", {}, [
           h("div.stat-label", { text: "Total in" }),
@@ -833,5 +844,5 @@ window.RBU.views = window.RBU.views || {};
       txList(items, { flat: true, limit: 40 }));
   }
 
-  NS.components = { screen: screen, txRow: txRow, txList: txList, txSheet: txSheet, quick: quick, sectionHead: sectionHead, accCur: accCur };
+  NS.components = { screen: screen, txRow: txRow, txList: txList, quick: quick, sectionHead: sectionHead, accCur: accCur };
 })(window.RBU);

@@ -31,6 +31,18 @@ window.RBU = window.RBU || {};
     referralCode: "DENIS-RBU",
   };
 
+  /* The employer behind every salary credit. Payroll is the story this demo
+     is built to tell, so it gets real structure: period, gross, deductions. */
+  var employer = {
+    name: "Northwind Digital Ltd",
+    legal: "Northwind Digital Ltd · 42 Threadneedle St, London EC2R 8AY",
+    role: "Senior Product Engineer",
+    employeeId: "EMP-04412",
+    payDay: 5,
+    bank: "Barclays London",
+    iban: "GB44 BARC 2019 8877 1234 56",
+  };
+
   /* ------------------------------------------------------------ currency */
 
   var rates = { USD: 1, EUR: 1.0842, GBP: 1.2715, BTC: 84320 };
@@ -73,7 +85,8 @@ window.RBU = window.RBU || {};
   /* ------------------------------------------------------------ taxonomy */
 
   var categories = {
-    income:        { label: "Income",         tone: "credit", icon: "download" },
+    salary:        { label: "Salary",          tone: "credit", icon: "wallet" },
+    income:        { label: "Income",          tone: "credit", icon: "download" },
     housing:       { label: "Housing",        tone: "plain",  icon: "home" },
     groceries:     { label: "Groceries",      tone: "plain",  icon: "cart" },
     dining:        { label: "Restaurants",    tone: "plain",  icon: "cup" },
@@ -97,8 +110,15 @@ window.RBU = window.RBU || {};
     crypto:        { label: "Crypto",         tone: "accent", icon: "coin" },
     fees:          { label: "Fees",           tone: "plain",  icon: "receipt" },
     cashback:      { label: "Rewards",        tone: "credit", icon: "star" },
-    charity:       { label: "Donations",      tone: "plain",  icon: "heart" },
-    gifts:         { label: "Gifts",          tone: "plain",  icon: "bag" },
+    charity:       { label: "Donations",       tone: "plain",  icon: "heart" },
+    gifts:         { label: "Gifts",           tone: "plain",  icon: "bag" },
+    pets:          { label: "Pets",            tone: "plain",  icon: "heart" },
+    home:          { label: "Home",            tone: "plain",  icon: "home" },
+    services:      { label: "Services",        tone: "plain",  icon: "gear" },
+    events:        { label: "Events & sport",  tone: "plain",  icon: "star" },
+    hobby:         { label: "Hobby",           tone: "plain",  icon: "sparkle" },
+    insurance:     { label: "Insurance",       tone: "plain",  icon: "shield" },
+    taxes:         { label: "Taxes",           tone: "plain",  icon: "doc" },
   };
 
   /* ----------------------------------------------------------------- rng */
@@ -141,6 +161,13 @@ window.RBU = window.RBU || {};
     software: ["Figma", "Notion", "GitHub", "Adobe Creative Cloud", "OpenAI", "Vercel", "Linear", "Framer"],
     charity: ["Red Cross Cyprus", "Animal Rescue CY", "Wikipedia Foundation"],
     gifts: ["Flower Studio", "Gift Box CY", "Amazon Gift Card"],
+    pets: ["Pet City", "Vet Clinic Limassol", "Zoo Market"],
+    home: ["Praktiker", "Leroy Merlin", "Home & Deco", "JYSK"],
+    services: ["Laundry Express", "Clean Home CY", "Locksmith 24", "ACS Courier", "DHL Express", "Regus Coworking"],
+    events: ["Ticketmaster", "Limassol Marathon", "Padel Club", "Anorthosis Stadium", "Museum of Cyprus"],
+    hobby: ["Thomann", "Art Supplies CY", "Model Shop", "Vinyl Corner"],
+    bakery: ["Zorbas Bakery", "Periptero Kiosk", "Simply Bread"],
+    carservice: ["Bosch Car Service", "Tyre Center", "Highway Toll", "MOT Test Centre"],
   };
 
   var PAYERS = [
@@ -164,6 +191,27 @@ window.RBU = window.RBU || {};
     { name: "Adobe Creative Cloud", amount: 22.99, day: 26, cat: "software" },
     { name: "Vercel Pro", amount: 20.0, day: 27, cat: "software" },
   ];
+
+  var MONTH_NAMES = ["January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"];
+
+  /* Net is what lands in the account; gross and deductions are derived so the
+     payslip always adds up exactly. */
+  function payslipFor(net, period) {
+    var gross = Math.round((net / 0.775) * 100) / 100;
+    var tax = Math.round(gross * 0.15 * 100) / 100;
+    var social = Math.round((gross - net - tax) * 100) / 100;
+    return {
+      period: period,
+      employer: employer.name,
+      role: employer.role,
+      employeeId: employer.employeeId,
+      gross: gross,
+      tax: tax,
+      social: social,
+      net: net,
+    };
+  }
 
   var uidCounter = 0;
   function uid(prefix) { uidCounter += 1; return (prefix || "tx") + "_" + uidCounter.toString(36) + "_" + (1000 + uidCounter); }
@@ -189,6 +237,8 @@ window.RBU = window.RBU || {};
       stream: o.stream || "",
       city: o.city || "",
       card: o.card || "",
+      payslip: o.payslip || null,
+      counterparty: o.counterparty || "",
       reason: o.reason || "",
     };
   }
@@ -232,21 +282,73 @@ window.RBU = window.RBU || {};
       var n = function (base) { return Math.max(0, Math.round(base * scale)); };
       var day = function () { return 1 + Math.floor(rnd() * maxDay); };
 
-      /* --- contract income · 12 payments · $80,000 exactly -------------- */
+      /* --- salary · 12 payments · $80,000 net exactly -------------------- */
       if (!isCurrent) {
-        var payer = PAYERS[i % PAYERS.length];
+        var net = INCOME_PLAN[i];
+        var periodName = MONTH_NAMES[m] + " " + y;
         out.push(tx({
-          date: iso(y, m, 3 + Math.floor(rnd() * 4), 10, 12),
-          title: payer.name,
-          subtitle: "Incoming transfer · " + payer.detail,
-          amount: INCOME_PLAN[i],
-          category: "income",
-          method: payer.method,
+          date: iso(y, m, employer.payDay, 9, 2),
+          title: employer.name,
+          subtitle: "Salary · " + periodName,
+          amount: net,
+          category: "salary",
+          method: "Salary payment · SEPA credit transfer",
           type: "credit",
-          ref: payer.ref + (1180 + i * 7),
-          fee: payer.method.indexOf("SWIFT") === 0 ? 15 : 0,
-          stream: "contract",
-          note: "Monthly retainer · development services",
+          ref: "PAYROLL/" + y + "-" + String(m + 1).padStart(2, "0"),
+          stream: "salary",
+          counterparty: employer.iban,
+          payslip: payslipFor(net, periodName),
+          note: "Monthly salary · " + employer.role,
+        }));
+      }
+
+      /* Payroll is more than the monthly run: bonuses and expenses land here
+         too, and they carry the same payslip treatment. */
+      if (!isCurrent && (i === 3 || i === 6 || i === 9 || i === 11)) {
+        var bonusNet = Math.round(money(rnd, 700, 1900) * 100) / 100;
+        out.push(tx({
+          date: iso(y, m, employer.payDay, 9, 4),
+          title: employer.name,
+          subtitle: "Performance bonus · Q" + (1 + Math.floor(i / 3)),
+          amount: bonusNet,
+          category: "salary",
+          method: "Salary payment · SEPA credit transfer",
+          type: "credit",
+          ref: "BONUS/" + y + "-" + String(m + 1).padStart(2, "0"),
+          stream: "bonus",
+          counterparty: employer.iban,
+          payslip: payslipFor(bonusNet, "Quarterly bonus"),
+          note: "Quarterly performance bonus",
+        }));
+      }
+      if (!isCurrent && m === 11) {
+        var thirteenth = 3200;
+        out.push(tx({
+          date: iso(y, m, 20, 9, 0),
+          title: employer.name,
+          subtitle: "13th salary · annual",
+          amount: thirteenth,
+          category: "salary",
+          method: "Salary payment · SEPA credit transfer",
+          type: "credit",
+          ref: "PAYROLL/" + y + "-13TH",
+          stream: "bonus",
+          counterparty: employer.iban,
+          payslip: payslipFor(thirteenth, "13th salary " + y),
+          note: "Statutory 13th salary",
+        }));
+      }
+      if (!isCurrent && chance(rnd, 0.6)) {
+        out.push(tx({
+          date: iso(y, m, 18, 15, 10),
+          title: employer.name,
+          subtitle: "Expense reimbursement",
+          amount: money(rnd, 60, 620),
+          category: "income",
+          method: "SEPA credit transfer",
+          type: "credit",
+          counterparty: employer.iban,
+          note: "Travel and equipment expenses",
         }));
       }
 
@@ -313,6 +415,32 @@ window.RBU = window.RBU || {};
       if (!isCurrent && chance(rnd, 0.4)) card(y, m, day(), pick(rnd, M.education), "education", 12, 190);
       if (!isCurrent && chance(rnd, 0.3)) card(y, m, day(), pick(rnd, M.charity), "charity", 10, 60);
       if (!isCurrent && chance(rnd, 0.28)) card(y, m, day(), pick(rnd, M.gifts), "gifts", 25, 180);
+      for (g = 0; g < n(2 + rnd() * 3); g++) card(y, m, day(), pick(rnd, M.bakery), "groceries", 1.8, 14, { hour: 8 });
+      for (g = 0; g < n(1 + rnd() * 2); g++) card(y, m, day(), pick(rnd, M.services), "services", 8, 95);
+      if (!isCurrent && chance(rnd, 0.5)) card(y, m, day(), pick(rnd, M.pets), "pets", 12, 140);
+      if (!isCurrent && chance(rnd, 0.45)) card(y, m, day(), pick(rnd, M.home), "home", 26, 320);
+      if (!isCurrent && chance(rnd, 0.5)) card(y, m, day(), pick(rnd, M.events), "events", 15, 130);
+      if (!isCurrent && chance(rnd, 0.35)) card(y, m, day(), pick(rnd, M.hobby), "hobby", 20, 240);
+      if (!isCurrent && chance(rnd, 0.4)) card(y, m, day(), pick(rnd, M.carservice), "transport", 25, 280);
+      if (!isCurrent && chance(rnd, 0.3)) card(y, m, day(), "Regus Coworking", "services", 90, 240, { note: "Day pass" });
+
+      /* Insurance and taxes: the boring rows that make a statement look real. */
+      if (!isCurrent && (m === 2 || m === 8)) {
+        out.push(tx({ date: iso(y, m, 22, 10, 0), title: "Hellas Direct", subtitle: "Car insurance · semi-annual", amount: -money(rnd, 180, 320), category: "insurance", method: "Direct debit" }));
+      }
+      if (!isCurrent && m === 6) {
+        out.push(tx({ date: iso(y, m, 24, 10, 30), title: "Cyprus Tax Department", subtitle: "Self-assessment payment", amount: -money(rnd, 620, 1400), category: "taxes", method: "SEPA credit transfer" }));
+      }
+      if (!isCurrent && m === 4) {
+        out.push(tx({ date: iso(y, m, 8, 11, 15), title: "Road tax · Cyprus", subtitle: "Annual vehicle duty", amount: -142, category: "taxes", method: "SEPA credit transfer" }));
+      }
+
+      /* A direct debit that bounces and is retried two days later — every real
+         statement has one of these. */
+      if (!isCurrent && i === 5) {
+        out.push(tx({ date: iso(y, m, 12, 11, 30), title: "EAC Electricity", subtitle: "Direct debit returned", amount: -138.4, category: "utilities", method: "Direct debit", status: "declined", reason: "Insufficient funds at the time of collection" }));
+        out.push(tx({ date: iso(y, m, 14, 11, 30), title: "EAC Electricity", subtitle: "Direct debit · retried", amount: -138.4, category: "utilities", method: "Direct debit" }));
+      }
 
       /* --- travel, seasonal ----------------------------------------------- */
       if (!isCurrent && (i === 2 || i === 5 || i === 9 || i === 11)) {
@@ -406,6 +534,12 @@ window.RBU = window.RBU || {};
       }
 
       /* --- crypto ---------------------------------------------------------- */
+      if (!isCurrent && i === 8) {
+        var sellUsd = money(rnd, 200, 500);
+        var sellPair = uid("pair");
+        out.push(tx({ date: iso(y, m, 23, 20, 10), title: "Sold Bitcoin", subtitle: "BTC @ $" + rates.BTC.toLocaleString("en-US"), amount: sellUsd, category: "crypto", method: "Instant sell", type: "credit", pairId: sellPair }));
+        out.push(tx({ date: iso(y, m, 23, 20, 10), title: "Bitcoin sale", subtitle: "Settled to Main account", amount: -(sellUsd / rates.BTC), account: "btc", category: "crypto", method: "Instant sell", pairId: sellPair }));
+      }
       if (!isCurrent && (i % 3 === 1)) {
         var buy = money(rnd, 120, 420);
         var btcPair = uid("pair");
@@ -443,10 +577,12 @@ window.RBU = window.RBU || {};
       amount: -298.4, category: "travel", status: "pending", card: cards[0].last4, city: "Online",
     }));
     out.push(tx({
-      date: iso(2026, 8, 1, 10, 12), title: "Helios Labs GmbH",
-      subtitle: "Incoming transfer · SEPA · Commerzbank", amount: 6700, category: "income",
-      method: "SEPA credit transfer", type: "credit", status: "pending", ref: "CT-1281",
-      stream: "contract", note: "September retainer · arriving today",
+      date: iso(2026, 8, 2, 9, 2), title: employer.name,
+      subtitle: "Salary · September 2026", amount: 6700, category: "salary",
+      method: "Salary payment · SEPA credit transfer", type: "credit", status: "pending",
+      ref: "PAYROLL/2026-09", stream: "salary", counterparty: employer.iban,
+      payslip: payslipFor(6700, "September 2026"),
+      note: "Monthly salary · arriving today",
     }));
 
     /* Nothing in a bank statement is dated in the future — the current month is
@@ -471,7 +607,7 @@ window.RBU = window.RBU || {};
   ];
 
   NS.data = {
-    TODAY: TODAY, profile: profile, rates: rates, accounts: accounts, cards: cards,
+    TODAY: TODAY, profile: profile, employer: employer, rates: rates, accounts: accounts, cards: cards,
     contacts: contacts, categories: categories, scheduled: scheduled,
     buildLedger: buildLedger, uid: uid, tx: tx, merchants: M,
   };

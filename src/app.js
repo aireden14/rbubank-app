@@ -21,7 +21,7 @@ window.RBU = window.RBU || {};
   ];
 
   var TAB_OF = {
-    home: "home", activity: "activity", transfers: "transfers", wealth: "wealth", profile: "profile",
+    home: "home", activity: "activity", receipt: "activity", transfers: "transfers", wealth: "wealth", profile: "profile",
     send: "transfers", request: "transfers", topup: "transfers", withdraw: "transfers",
     exchange: "transfers", split: "transfers", scheduled: "transfers", recipients: "transfers",
     analytics: "wealth", cards: "wealth", card: "wealth", vault: "wealth", crypto: "wealth",
@@ -155,14 +155,21 @@ window.RBU = window.RBU || {};
     },
 
     /* Periods drive Activity and Analytics. "all" keeps the whole ledger. */
-    period: "1y",
+    period: "7d",
+    loading: false,
 
     periodStart: function (period) {
-      var months = { "1m": 1, "3m": 3, "6m": 6, "1y": 12 }[period || this.period];
+      var id = period || this.period;
+      if (id === "7d") return new Date(data.TODAY.getTime() - 6 * 864e5).toISOString().slice(0, 10);
+      var months = { "1m": 1, "3m": 3, "6m": 6, "1y": 12 }[id];
       if (!months) return null;
       var d = new Date(data.TODAY.getTime());
       d.setUTCMonth(d.getUTCMonth() - months);
       return d.toISOString();
+    },
+
+    txById: function (id) {
+      return this.ledger().filter(function (t) { return t.id === id; })[0] || null;
     },
 
     inPeriod: function (t, period) {
@@ -183,7 +190,7 @@ window.RBU = window.RBU || {};
         count += 1;
         if (INTERNAL[t.category]) return;
         var usd = t.amount * (data.rates[acc.currency] || 1);
-        if (usd > 0) { income += usd; if (t.stream === "contract") salary += usd; }
+        if (usd > 0) { income += usd; if (t.stream === "salary") salary += usd; }
         else spend += -usd;
       });
       return { income: income, spend: spend, salary: salary, net: income - spend, count: count };
@@ -213,6 +220,7 @@ window.RBU = window.RBU || {};
 
     tab: function (id) {
       ui.haptic("light");
+      this.loading = false;
       this.stack = [];
       this.flow = null;
       this.listLimit = 60;

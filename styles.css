@@ -470,7 +470,14 @@ button.row:active { opacity: 0.55; }
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  min-width: 0;
 }
+
+/* Only the name truncates — a badge next to it must always stay readable. */
+.row-title .title-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.row-title .tag { flex: 0 0 auto; }
 .row-sub {
   font-size: 13px;
   color: var(--text-3);
@@ -925,7 +932,185 @@ button.row:active { opacity: 0.55; }
 .is-bad { color: var(--danger); }
 .status-dot.is-bad { background: var(--danger); }
 
+
+/* ------------------------------------------------------------- salary tag */
+
+.tag {
+  display: inline-block;
+  margin-left: 7px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  color: var(--credit);
+  background: color-mix(in srgb, var(--credit) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--credit) 34%, transparent);
+}
+
+/* A salary credit is the row clients look for, so it gets a lane of its own. */
+.row.is-salary {
+  border-left: 2px solid color-mix(in srgb, var(--credit) 62%, transparent);
+  padding-left: 12px;
+  margin-left: -14px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--credit) 10%, transparent), transparent 66%);
+}
+
+/* ---------------------------------------------------------------- loading */
+
+.loading-note {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13.5px;
+  color: var(--text-3);
+  padding: 4px 0 10px;
+}
+
+.spinner {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.16);
+  border-top-color: var(--accent-1);
+  animation: spin 720ms linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--hairline-soft);
+}
+
+.sk-main { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+
+.sk {
+  background: linear-gradient(90deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.11) 50%, rgba(255,255,255,0.05) 100%);
+  background-size: 220% 100%;
+  animation: shimmer 1.25s var(--ease) infinite;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  from { background-position: 140% 0; }
+  to { background-position: -40% 0; }
+}
+
+.sk-glyph { width: 44px; height: 44px; border-radius: 14px; flex: 0 0 auto; }
+.sk-line { height: 12px; }
+.sk-line.is-thin { height: 9px; opacity: 0.7; }
+.sk-amount { width: 74px; height: 15px; flex: 0 0 auto; }
+.sk-value { height: 22px; width: 70%; margin-top: 8px; }
+
+/* ---------------------------------------------------------------- receipt */
+
+.receipt-head { display: flex; align-items: center; justify-content: space-between; }
+
+.receipt {
+  position: relative;
+  border-radius: 22px;
+  padding: 22px 20px 18px;
+  background:
+    radial-gradient(120% 60% at 50% 0%, rgba(255,255,255,0.07) 0%, transparent 60%),
+    #0d0d12;
+  border: 1px solid var(--hairline);
+  box-shadow: 0 26px 60px rgba(0,0,0,0.55);
+  overflow: hidden;
+}
+
+.receipt-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.receipt-brand { font-size: 15px; font-weight: 780; letter-spacing: 0.16em; }
+.receipt-kind { font-size: 12px; color: var(--text-3); margin-top: 3px; letter-spacing: 0.02em; }
+
+/* The stamp is angled the way a teller's stamp lands on paper. */
+.receipt-stamp {
+  transform: rotate(-6deg);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  font-weight: 780;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border: 2px solid currentColor;
+  opacity: 0.92;
+}
+.receipt-stamp.is-ok { color: var(--credit); }
+.receipt-stamp.is-hold { color: var(--warn); }
+.receipt-stamp.is-bad { color: var(--danger); }
+
+.receipt-hero { text-align: center; padding: 20px 0 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.glyph.is-lg { width: 56px; height: 56px; border-radius: 18px; }
+.glyph.is-lg svg { width: 26px; height: 26px; }
+.receipt-amount { font-size: 40px; font-weight: 700; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.receipt-sub { font-size: 15px; font-weight: 620; color: var(--text-2); }
+.receipt-date { font-size: 13px; color: var(--text-3); }
+
+/* Torn paper edge, drawn with a repeating conic mask. */
+.tear {
+  height: 12px;
+  margin: 4px -20px;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--hairline) 0 1px,
+    transparent 1px 8px
+  );
+  border-top: 1px dashed var(--hairline);
+  border-bottom: 0;
+}
+.tear.is-bottom { border-top: 1px dashed var(--hairline); }
+
+.receipt-block { padding: 14px 0 4px; border-bottom: 1px solid var(--hairline-soft); }
+.receipt-block:last-of-type { border-bottom: 0; }
+.receipt-block-title {
+  font-size: 11.5px;
+  font-weight: 660;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 10px;
+}
+
+.receipt-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 7px 0;
+}
+.receipt-label { font-size: 13.5px; color: var(--text-3); flex: 0 0 auto; }
+.receipt-value {
+  font-size: 14.5px;
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  word-break: break-word;
+}
+.receipt-line.is-strong { border-top: 1px solid var(--hairline); margin-top: 6px; padding-top: 12px; }
+.receipt-line.is-strong .receipt-label { color: var(--text); font-weight: 640; }
+.receipt-line.is-strong .receipt-value { font-size: 19px; font-weight: 720; }
+
+.receipt-foot { padding-top: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.barcode { display: flex; align-items: flex-end; justify-content: center; gap: 2px; flex-wrap: wrap; height: 46px; }
+.barcode .bar { display: block; height: 34px; background: var(--text); border-radius: 1px; }
+.barcode-text {
+  width: 100%;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: var(--text-3);
+  margin-top: 6px;
+}
+.receipt-legal { font-size: 11.5px; line-height: 1.5; color: var(--text-3); text-align: center; }
+
 /* --------------------------------------------------------------- footer */
+
 
 
 .footer {
