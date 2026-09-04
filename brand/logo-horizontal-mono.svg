@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 200" width="940" height="200" role="img" aria-label="RBUBANK">
+  <title>RBUBANK — horizontal lockup</title>
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="220" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFA24B"/>
+      <stop offset="0.48" stop-color="#FF7A18"/>
+      <stop offset="1" stop-color="#D8410A"/>
+    </linearGradient>
+    <radialGradient id="gloss" cx="130" cy="40" r="470" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.46"/>
+      <stop offset="0.42" stop-color="#FFFFFF" stop-opacity="0.07"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+  
+    <linearGradient id="ink" x1="0" y1="0" x2="540" y2="96" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFA24B"/>
+      <stop offset="1" stop-color="#E2530A"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(0 12) scale(0.34)">
+
+  <rect width="512" height="512" rx="114" fill="#F2570A"/>
+  <rect width="512" height="512" rx="114" fill="none"/>
+  <rect x="5" y="5" width="502" height="502" rx="111" fill="none" stroke="none" stroke-width="3"/>
+
+  <!-- Monogram: the same single-stroke construction as the wordmark, so the
+       mark and the logotype are visibly the same alphabet. -->
+  <g fill="none" stroke="#FFFFFF" stroke-width="40" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M146 384V140h76a56 56 0 0 1 0 112h-76"/>
+    <path d="M216 252l72 132"/>
+  </g>
+
+  <!-- One rising arrow in the corner the R leaves open: the whole promise of a
+       bank in a single stroke, and it survives at 28px. -->
+  <g fill="none" stroke="#FFFFFF" stroke-width="30" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.94">
+    <path d="M300 316 386 186"/>
+    <path d="M330 168h64v62"/>
+  </g>
+</g>
+  <g transform="translate(226 52)">
+  <g fill="none" stroke="#F2570A" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" transform="translate(10 13)">
+    <g transform="translate(0 0)">
+      <path d="M6 70V6h24a16 16 0 0 1 0 32H6"/>
+      <path d="M28 38l22 32"/>
+    </g>
+    <g transform="translate(72 0)">
+      <path d="M6 70V6h22a16 16 0 0 1 0 32H6"/>
+      <path d="M28 38a16 16 0 0 1 0 32H6"/>
+    </g>
+    <g transform="translate(144 0)">
+      <path d="M6 6v42a22 22 0 0 0 44 0V6"/>
+    </g>
+    <g transform="translate(216 0)">
+      <path d="M6 70V6h22a16 16 0 0 1 0 32H6"/>
+      <path d="M28 38a16 16 0 0 1 0 32H6"/>
+    </g>
+    <g transform="translate(288 0)">
+      <path d="M5 70L28 6l23 64"/>
+      <path d="M14 49h28"/>
+    </g>
+    <g transform="translate(360 0)">
+      <path d="M6 70V6l44 64V6"/>
+    </g>
+    <g transform="translate(432 0)">
+      <path d="M6 6v64"/>
+      <path d="M48 6L14 39l34 31"/>
+    </g>
+  </g>
+</g>
+</svg>

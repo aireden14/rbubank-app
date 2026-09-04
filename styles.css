@@ -21,12 +21,14 @@
   --text-2: rgba(235, 235, 245, 0.60);
   --text-3: rgba(235, 235, 245, 0.32);
 
-  --accent-1: #7b61ff;
-  --accent-2: #3d1fd0;
-  --accent-soft: rgba(123, 97, 255, 0.16);
+  /* Brand orange, straight off the logo. Money-in stays mint and warnings
+     go yellow so nothing competes with the brand colour. */
+  --accent-1: #ff7a18;
+  --accent-2: #d8410a;
+  --accent-soft: rgba(255, 122, 24, 0.16);
 
   --credit: #34e0a1;
-  --warn: #ffb02e;
+  --warn: #ffd166;
   --danger: #ff4d6d;
 
   --radius-l: 28px;
@@ -545,7 +547,7 @@ button.row:active { opacity: 0.55; }
   border: 1px solid var(--hairline);
   background:
     radial-gradient(120% 90% at 12% 4%, rgba(255,255,255,0.16) 0%, transparent 58%),
-    linear-gradient(152deg, #2a1a6e 0%, #120b33 52%, #05040f 100%);
+    linear-gradient(152deg, #4a2409 0%, #23100a 52%, #080403 100%);
   box-shadow: 0 24px 60px rgba(0,0,0,0.55);
   transition: opacity 300ms var(--ease), filter 300ms var(--ease);
 }
@@ -752,14 +754,12 @@ button.row:active { opacity: 0.55; }
   gap: 14px;
 }
 .logo-mark {
-  width: 74px; height: 74px;
-  border-radius: 22px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(150deg, var(--accent-1), var(--accent-2));
-  box-shadow: 0 22px 54px color-mix(in srgb, var(--accent-1) 34%, transparent);
-  font-size: 27px; font-weight: 780; letter-spacing: -0.04em;
+  width: 80px; height: 80px;
+  border-radius: 24px;
+  display: block;
+  box-shadow: 0 22px 54px color-mix(in srgb, var(--accent-1) 36%, transparent);
 }
+.logo-word { width: 232px; max-width: 62vw; display: block; }
 .wordmark { font-size: 30px; font-weight: 780; letter-spacing: 0.14em; }
 .tagline { font-size: 15px; color: var(--text-2); max-width: 280px; }
 
@@ -1026,7 +1026,8 @@ button.row:active { opacity: 0.55; }
 }
 
 .receipt-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-.receipt-brand { font-size: 15px; font-weight: 780; letter-spacing: 0.16em; }
+.receipt-brand { font-size: 15px; font-weight: 780; letter-spacing: 0.16em; display: flex; align-items: center; gap: 9px; }
+.receipt-logo { width: 26px; height: 26px; border-radius: 8px; display: block; }
 .receipt-kind { font-size: 12px; color: var(--text-3); margin-top: 3px; letter-spacing: 0.02em; }
 
 /* The stamp is angled the way a teller's stamp lands on paper. */

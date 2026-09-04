@@ -90,7 +90,10 @@ window.RBU.views = window.RBU.views || {};
       h("div.receipt", {}, [
         h("div.receipt-top", {}, [
           h("div", {}, [
-            h("div.receipt-brand", { text: "RBUBANK" }),
+            h("div.receipt-brand", {}, [
+              h("img.receipt-logo", { src: "brand/logo-mark.svg", alt: "", width: 26, height: 26 }),
+              "RBUBANK",
+            ]),
             h("div.receipt-kind", { text: isSalary ? "Payslip & payment receipt" : credit ? "Credit receipt" : "Payment receipt" }),
           ]),
           h("div", { class: "receipt-stamp " + st.cls, text: st.label }),

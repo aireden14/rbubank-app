@@ -165,8 +165,8 @@ window.RBU.views = window.RBU.views || {};
 
     return screen([
       h("div.spacer"),
-      h("div.logo-mark", { text: "R" }),
-      h("div.wordmark", { text: "RBUBANK" }),
+      h("img.logo-mark", { src: "brand/logo-mark.svg", alt: "RBUBANK", width: 80, height: 80 }),
+      h("img.logo-word", { src: "brand/logo-wordmark.svg", alt: "RBUBANK" }),
       h("div.tagline", { text: "One account for everything money. Spend, save, send and exchange in 30+ currencies." }),
       h("div", { style: "display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:999px;background:var(--surface);border:1px solid var(--hairline-soft)" }, [
         h("div.avatar.is-sm", { text: data.profile.initials }),

@@ -28,9 +28,17 @@ send money (recipient → amount → confirm → receipt), add money, withdraw, 
 
 **The rest of a bank.** Cards (metal + virtual, limits, PIN, per-card toggles), savings vault at 4.15% APY, crypto, multi-currency accounts, analytics (in vs out, categories, top merchants), statements with print/PDF and CSV export, IBAN/BIC/sort code/routing details, security (biometrics, 2FA, devices, deposit protection), notifications, plans and pricing, support, referrals, and an "About" screen written for investors.
 
+## Brand
+
+Orange, drawn from scratch as pure vector: a monogram R and one rising line, plus a stroked
+wordmark that needs no font to render. Mark, wordmark, horizontal lockup, mono and white
+variants live in `brand/`, and `brand.html` is a one-page kit with sizes, colours and downloads.
+
+Brand orange `#FF7A18` → `#D8410A`, money-in mint `#34E0A1`, black canvas.
+
 ## Design
 
-Design code inherited from BurpiOpus: black canvas, one violet accent, aurora glow, hairline rules,
+Design code inherited from BurpiOpus: black canvas, one orange accent, aurora glow, hairline rules,
 oversized tabular numerals, glass surfaces, bottom sheets, 520px content column centred on any screen.
 Dark only, mobile-first, safe-area aware, `prefers-reduced-motion` respected.
 
@@ -53,7 +61,9 @@ Then open http://localhost:4479 — or just double-click `index.html`.
 ```
 index.html            shell
 styles.css            design system
-icon.svg              app icon
+icon.svg              app icon (the mark)
+brand/                logo: mark, wordmark, lockup, mono, white
+brand.html            one-page brand kit
 src/data.js           seeded ledger, accounts, cards, contacts
 src/ui.js             element helper, icon set, money/date formatting, sheets, toasts
 src/views-money.js    login, home, activity, wealth, analytics

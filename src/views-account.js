@@ -373,7 +373,10 @@ window.RBU.views = window.RBU.views || {};
       ui.backBtn(function () { app.back(); }),
       h("div", { style: "display:flex;justify-content:space-between;align-items:flex-start" }, [
         h("div", {}, [
-          h("div.wordmark", { style: "font-size:20px", text: "RBUBANK" }),
+          h("div", { style: "display:flex;align-items:center;gap:10px" }, [
+            h("img", { src: "brand/logo-mark.svg", alt: "", width: 30, height: 30, style: "border-radius:9px;display:block" }),
+            h("div.wordmark", { style: "font-size:20px", text: "RBUBANK" }),
+          ]),
           h("div.muted", { style: "font-size:13px;margin-top:4px", text: "Statement · " + ui.monthLabel(key) }),
         ]),
         h("button.icon-btn", { type: "button", "aria-label": "Print", onclick: function () { window.print(); } }, ui.icon("download", 20)),
@@ -570,8 +573,8 @@ window.RBU.views = window.RBU.views || {};
     return screen([
       ui.backBtn(function () { app.back(); }),
       h("div", { style: "display:flex;flex-direction:column;align-items:center;gap:10px;padding:4px 0" }, [
-        h("div.logo-mark", { text: "R" }),
-        h("div.wordmark", { text: "RBUBANK" }),
+        h("img.logo-mark", { src: "brand/logo-mark.svg", alt: "RBUBANK", width: 80, height: 80 }),
+        h("img.logo-word", { src: "brand/logo-wordmark.svg", alt: "RBUBANK" }),
         h("div.tagline", { text: "One account for everything money." }),
       ]),
       h("div.card", {}, [

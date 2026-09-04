@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 96" width="560" height="96" role="img" aria-label="RBUBANK">
+  <title>RBUBANK — wordmark</title>
+  <defs>
+    <linearGradient id="ink" x1="0" y1="0" x2="540" y2="96" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFA24B"/>
+      <stop offset="1" stop-color="#E2530A"/>
+    </linearGradient>
+  </defs>
+  <!-- Letters are drawn as strokes, not type: no font is needed to render them. -->
+  <g fill="none" stroke="url(#ink)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" transform="translate(10 13)">
+    <g transform="translate(0 0)">
+      <path d="M6 70V6h24a16 16 0 0 1 0 32H6"/>
+      <path d="M28 38l22 32"/>
+    </g>
+    <g transform="translate(72 0)">
+      <path d="M6 70V6h22a16 16 0 0 1 0 32H6"/>
+      <path d="M28 38a16 16 0 0 1 0 32H6"/>
+    </g>
+    <g transform="translate(144 0)">
+      <path d="M6 6v42a22 22 0 0 0 44 0V6"/>
+    </g>
+    <g transform="translate(216 0)">
+      <path d="M6 70V6h22a16 16 0 0 1 0 32H6"/>
+      <path d="M28 38a16 16 0 0 1 0 32H6"/>
+    </g>
+    <g transform="translate(288 0)">
+      <path d="M5 70L28 6l23 64"/>
+      <path d="M14 49h28"/>
+    </g>
+    <g transform="translate(360 0)">
+      <path d="M6 70V6l44 64V6"/>
+    </g>
+    <g transform="translate(432 0)">
+      <path d="M6 6v64"/>
+      <path d="M48 6L14 39l34 31"/>
+    </g>
+  </g>
+</svg>
