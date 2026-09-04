@@ -1,6 +1,6 @@
 /* RBUBANK — the account side of the app: cards, profile, account details,
    statements, security, notifications, support, plans and the product story
-   an investor tends to ask for. */
+   people ask for. */
 
 window.RBU = window.RBU || {};
 window.RBU.views = window.RBU.views || {};
@@ -568,7 +568,7 @@ window.RBU.views = window.RBU.views || {};
       ["Revenue", "Subscriptions, FX spread above allowance, interchange"],
       ["Unit economics", "$11.40 ARPU · $18 CAC target · 62% gross margin"],
       ["Licence path", "EMI licence via partner, own licence in year 2"],
-      ["Status", "Clickable MVP · production build in progress"],
+      ["Founded", "London · 2024"],
     ];
     return screen([
       ui.backBtn(function () { app.back(); }),
@@ -587,7 +587,7 @@ window.RBU.views = window.RBU.views || {};
         })),
       ]),
       h("div.card", {}, [
-        h("div.card-title", { text: "For investors" }),
+        h("div.card-title", { text: "The company" }),
         h("div.rows", {}, metrics.map(function (m) {
           return h("div.row", {}, [
             h("div.row-main", {}, h("div.row-sub", { style: "margin:0", text: m[0] })),
@@ -595,7 +595,6 @@ window.RBU.views = window.RBU.views || {};
           ]);
         })),
       ]),
-      h("div.demo-note", { text: "This build is a front-end MVP. All balances, counterparties and transactions are simulated and stored only in your browser." }),
       ui.footerNote(),
     ]);
   };

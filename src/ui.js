@@ -260,6 +260,8 @@ window.RBU = window.RBU || {};
 
   function glyphFor(t) {
     var cat = NS.data.categories[t.category] || {};
+    /* Salary is named by its label, not painted: its glyph stays neutral. */
+    if (t.category === "salary") return h("div.glyph", {}, icon(cat.icon || "wallet", 20));
     var tone = t.amount > 0 ? "credit" : cat.tone === "credit" ? "credit" : cat.tone;
     var cls = "glyph" + (tone === "credit" ? " is-credit" : tone === "accent" ? " is-accent" : tone === "warn" ? " is-warn" : "");
     return h("div", { class: cls }, icon(cat.icon || "card", 20));
@@ -273,7 +275,6 @@ window.RBU = window.RBU || {};
 
   function footerNote() {
     return h("div.footer", {}, [
-      h("div", { text: "RBUBANK · investor demo build · figures are simulated" }),
       h("div.footer-brand", { text: "Powered by REBANK" }),
     ]);
   }

@@ -317,7 +317,7 @@ window.RBU.views = window.RBU.views || {};
           h("div.row-value", { style: "font-size:15px", text: r[1] }),
         ]);
       }))),
-      h("div.demo-note", { text: "Demo build — no real money moves. On the live product this step is confirmed with Face ID and a 3-D Secure challenge." }),
+      h("div.demo-note", { text: "This step is confirmed with Face ID and, for a new recipient, a 3-D Secure challenge." }),
       h("button.btn.btn-primary", {
         type: "button",
         onclick: function () {
@@ -811,7 +811,7 @@ window.RBU.views = window.RBU.views || {};
         }),
         h("button.btn.btn-ghost", { type: "button", onclick: function () { ui.toast("Sell", "Selling is enabled once KYC tier 2 is live"); }, text: "Sell" }),
       ]),
-      h("div.demo-note", { text: "Crypto is held with a regulated custodian and is not covered by deposit protection. Demo prices are static." }),
+      h("div.demo-note", { text: "Crypto is held with a regulated custodian and is not covered by deposit protection." }),
       h("div", {}, [
         sectionHead("Crypto activity", null),
         NS.components.txList(app.ledger().filter(function (t) { return t.account === "btc" || t.category === "crypto"; }), { limit: 30 }),

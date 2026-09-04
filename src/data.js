@@ -34,7 +34,8 @@ window.RBU = window.RBU || {};
   /* The employer behind every salary credit. Payroll is the story this demo
      is built to tell, so it gets real structure: period, gross, deductions. */
   var employer = {
-    name: "Northwind Digital Ltd",
+    name: "Northwind Digital",
+    legalName: "Northwind Digital Ltd",
     legal: "Northwind Digital Ltd · 42 Threadneedle St, London EC2R 8AY",
     role: "Senior Product Engineer",
     employeeId: "EMP-04412",
@@ -203,7 +204,7 @@ window.RBU = window.RBU || {};
     var social = Math.round((gross - net - tax) * 100) / 100;
     return {
       period: period,
-      employer: employer.name,
+      employer: employer.legalName,
       role: employer.role,
       employeeId: employer.employeeId,
       gross: gross,

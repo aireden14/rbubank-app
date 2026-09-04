@@ -47,8 +47,7 @@ window.RBU.views = window.RBU.views || {};
 
   function txRow(t) {
     var isSalary = t.category === "salary";
-    return h("button", {
-      class: "row" + (isSalary ? " is-salary" : ""),
+    return h("button.row", {
       type: "button",
       onclick: function () { NS.app.go("receipt", { id: t.id }); },
     }, [
@@ -124,7 +123,7 @@ window.RBU.views = window.RBU.views || {};
     ui.sheet("Scan to pay", "Point the camera at any RBU QR code, or show yours to get paid.", h("div.stack", {}, [
       h("div", { style: "display:grid;place-items:center;padding:8px 0 4px" },
         h("div", { style: "width:190px;height:190px;border-radius:24px;display:grid;place-items:center;background:#fff;color:#000" }, ui.icon("qr", 120))),
-      h("div.demo-note", { text: "Camera access is disabled in the demo build. Your personal QR resolves to rbubank.app/pay/denis." }),
+      h("div.demo-note", { text: "Your personal QR resolves to rbubank.app/pay/denis — it works with any bank or card." }),
       h("button.btn.btn-primary", { type: "button", onclick: function () { ui.closeSheet(); ui.copy("https://rbubank.app/pay/denis", "Payment link copied"); }, text: "Copy my payment link" }),
     ]));
   }
@@ -177,7 +176,7 @@ window.RBU.views = window.RBU.views || {};
       ]),
       dots,
       h("div", { style: "width:100%;max-width:300px" }, h("div.keypad", {}, keys)),
-      h("div.muted", { style: "font-size:13px", text: "Demo build — any 4 digits unlock, or tap Face ID." }),
+      h("div.muted", { style: "font-size:13px", text: "Enter any 4 digits, or tap Face ID." }),
       h("div.spacer"),
       ui.footerNote(),
     ], "login");
@@ -244,12 +243,12 @@ window.RBU.views = window.RBU.views || {};
 
       pending ? h("button.card", {
         type: "button",
-        style: "border-color:color-mix(in srgb, var(--credit) 34%, transparent);width:100%;text-align:left;font-family:inherit;color:inherit;cursor:pointer",
+        style: "width:100%;text-align:left;font-family:inherit;color:inherit;cursor:pointer",
         onclick: function () { app.go("receipt", { id: pending.id }); },
       }, [
-        h("div.card-title", { class: "credit", text: pending.category === "salary" ? "Salary arriving today" : "Incoming" }),
+        h("div.card-title", { text: pending.category === "salary" ? "Salary arriving today" : "Incoming" }),
         h("div", { style: "display:flex;align-items:center;gap:12px" }, [
-          h("div.glyph.is-credit", {}, ui.icon(pending.category === "salary" ? "wallet" : "download", 20)),
+          h("div.glyph", {}, ui.icon(pending.category === "salary" ? "wallet" : "download", 20)),
           h("div.row-main", {}, [
             h("div.row-title", { text: pending.title }),
             h("div.row-sub", { text: pending.subtitle + " · " + pending.method.split(" · ")[0] }),

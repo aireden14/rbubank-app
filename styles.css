@@ -935,27 +935,20 @@ button.row:active { opacity: 0.55; }
 
 /* ------------------------------------------------------------- salary tag */
 
+/* A quiet grey label. Salary is worth naming in the list, not decorating. */
 .tag {
   display: inline-block;
-  margin-left: 7px;
-  padding: 2px 7px;
-  border-radius: 6px;
-  font-size: 10.5px;
-  font-weight: 700;
+  margin-left: 6px;
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 660;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   vertical-align: middle;
-  color: var(--credit);
-  background: color-mix(in srgb, var(--credit) 16%, transparent);
-  border: 1px solid color-mix(in srgb, var(--credit) 34%, transparent);
-}
-
-/* A salary credit is the row clients look for, so it gets a lane of its own. */
-.row.is-salary {
-  border-left: 2px solid color-mix(in srgb, var(--credit) 62%, transparent);
-  padding-left: 12px;
-  margin-left: -14px;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--credit) 10%, transparent), transparent 66%);
+  color: var(--text-3);
+  background: var(--surface);
+  border: 1px solid var(--hairline-soft);
 }
 
 /* ---------------------------------------------------------------- loading */
