@@ -293,7 +293,7 @@ window.RBU.views = window.RBU.views || {};
       ]),
       h("div.actions", {}, [
         h("button.btn.btn-primary", { type: "button", onclick: function () { ui.copy(p.iban + " / " + p.bic, "Details copied"); }, text: "Copy all details" }),
-        h("button.btn.btn-ghost", { type: "button", onclick: function () { ui.copy("https://rbubank.app/pay/denrech", "Payment link copied"); }, text: "Share payment link" }),
+        h("button.btn.btn-ghost", { type: "button", onclick: function () { ui.copy("https://rbubank.app/pay/denis", "Payment link copied"); }, text: "Share payment link" }),
       ]),
       ui.footerNote(),
     ]);

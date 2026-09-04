@@ -186,8 +186,8 @@ window.RBU.views = window.RBU.views || {};
     ui.sheet("Scan to pay", "Point the camera at any RBU QR code, or show yours to get paid.", h("div.stack", {}, [
       h("div", { style: "display:grid;place-items:center;padding:8px 0 4px" },
         h("div", { style: "width:190px;height:190px;border-radius:24px;display:grid;place-items:center;background:#fff;color:#000" }, ui.icon("qr", 120))),
-      h("div.demo-note", { text: "Camera access is disabled in the demo build. Your personal QR resolves to rbubank.app/pay/denrech." }),
-      h("button.btn.btn-primary", { type: "button", onclick: function () { ui.closeSheet(); ui.copy("https://rbubank.app/pay/denrech", "Payment link copied"); }, text: "Copy my payment link" }),
+      h("div.demo-note", { text: "Camera access is disabled in the demo build. Your personal QR resolves to rbubank.app/pay/denis." }),
+      h("button.btn.btn-primary", { type: "button", onclick: function () { ui.closeSheet(); ui.copy("https://rbubank.app/pay/denis", "Payment link copied"); }, text: "Copy my payment link" }),
     ]));
   }
 

@@ -15,7 +15,7 @@ window.RBU = window.RBU || {};
     firstName: "Denis",
     lastName: "Reshetov",
     initials: "DR",
-    handle: "@denrech",
+    handle: "@denis.r",
     plan: "Metal",
     memberSince: "March 2024",
     email: "denis@rbubank.app",

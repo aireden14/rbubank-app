@@ -60,4 +60,4 @@ src/views-account.js  cards, profile, details, statements, security, notificatio
 src/app.js            state, persistence, routing
 ```
 
-Powered by [@Denrech](https://t.me/Denrech)
+Powered by REBANK

@@ -376,7 +376,7 @@ window.RBU.views = window.RBU.views || {};
 
   V.request = function (app) {
     var pad = amountPad({ currency: "USD", sub: "Request into your Main account" });
-    var link = "https://rbubank.app/pay/denrech";
+    var link = "https://rbubank.app/pay/denis";
     return screen([
       ui.backBtn(function () { app.back(); }),
       head("Request money", "Get paid"),

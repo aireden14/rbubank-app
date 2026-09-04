@@ -273,10 +273,7 @@ window.RBU = window.RBU || {};
   function footerNote() {
     return h("div.footer", {}, [
       h("div", { text: "RBUBANK · investor demo build · figures are simulated" }),
-      h("div", {}, [
-        "Powered by ",
-        h("a", { href: "https://t.me/Denrech", target: "_blank", rel: "noopener noreferrer", text: "@Denrech" }),
-      ]),
+      h("div.footer-brand", { text: "Powered by REBANK" }),
     ]);
   }
 
