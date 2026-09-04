@@ -176,7 +176,7 @@ window.RBU.views = window.RBU.views || {};
       ]),
       dots,
       h("div", { style: "width:100%;max-width:300px" }, h("div.keypad", {}, keys)),
-      h("div.muted", { style: "font-size:13px", text: "Enter any 4 digits, or tap Face ID." }),
+      h("div.muted", { style: "font-size:13px", text: "Enter your passcode to unlock" }),
       h("div.spacer"),
       ui.footerNote(),
     ], "login");
