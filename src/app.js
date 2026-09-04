@@ -72,6 +72,7 @@ window.RBU = window.RBU || {};
     flow: null,
     filter: "all",
     query: "",
+    listLimit: 60,
 
     /* ------------------------------------------------------- persistence */
 
@@ -91,6 +92,7 @@ window.RBU = window.RBU || {};
       this.state = defaults();
       this.state.unlocked = true;
       this.base = data.buildLedger();
+      this._ledger = null;
       this.stack = [];
       this.go("home", {}, { replace: true });
       ui.toast("Demo data restored", "Ledger rebuilt from the original seed");
@@ -98,9 +100,14 @@ window.RBU = window.RBU || {};
 
     /* ------------------------------------------------------------ ledger */
 
+    /* The ledger is read dozens of times per render (every balance, every
+       filter), so it is sorted once and cached until the user adds something. */
     ledger: function () {
+      if (this._ledger && this._ledgerN === this.state.extra.length) return this._ledger;
       var all = this.base.concat(this.state.extra);
       all.sort(function (a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; });
+      this._ledger = all;
+      this._ledgerN = this.state.extra.length;
       return all;
     },
 
@@ -119,9 +126,11 @@ window.RBU = window.RBU || {};
       if (!acc) return 0;
       var sum = acc.opening;
       /* Pending debits are authorisation holds: they leave the available
-         balance straight away. Pending credits have not landed yet. */
+         balance straight away. Pending credits have not landed yet, and a
+         declined payment never left the account at all. */
       this.ledger().forEach(function (t) {
         if (t.account !== id) return;
+        if (t.status === "declined") return;
         if (t.status === "pending" && t.amount > 0) return;
         sum += t.amount;
       });
@@ -145,20 +154,39 @@ window.RBU = window.RBU || {};
       }, 0);
     },
 
-    /* Sums of a period, in USD, for the headline numbers on Home/Analytics. */
-    stats: function (months) {
-      var cut = new Date(data.TODAY.getTime() - (months || 12) * 30.5 * 864e5).toISOString();
-      var income = 0, spend = 0, salary = 0;
+    /* Periods drive Activity and Analytics. "all" keeps the whole ledger. */
+    period: "1y",
+
+    periodStart: function (period) {
+      var months = { "1m": 1, "3m": 3, "6m": 6, "1y": 12 }[period || this.period];
+      if (!months) return null;
+      var d = new Date(data.TODAY.getTime());
+      d.setUTCMonth(d.getUTCMonth() - months);
+      return d.toISOString();
+    },
+
+    inPeriod: function (t, period) {
+      var cut = this.periodStart(period);
+      return !cut || t.date >= cut;
+    },
+
+    /* Sums over a period, in USD, for the headline numbers on Home/Analytics.
+       Internal moves (vault, FX, crypto) are not income or spending. */
+    stats: function (period) {
+      var self = this;
+      var income = 0, spend = 0, salary = 0, count = 0;
+      var INTERNAL = { savings: 1, exchange: 1, crypto: 1 };
       this.ledger().forEach(function (t) {
-        if (t.date < cut || t.status === "pending") return;
+        if (!self.inPeriod(t, period) || t.status !== "completed") return;
         var acc = data.accounts.filter(function (a) { return a.id === t.account; })[0];
         if (!acc || acc.currency === "BTC") return;
+        count += 1;
+        if (INTERNAL[t.category]) return;
         var usd = t.amount * (data.rates[acc.currency] || 1);
-        if (t.category === "savings" || t.category === "exchange" || t.category === "crypto") return;
-        if (usd > 0) { income += usd; if (t.category === "income" && t.account === "usd") salary += usd; }
+        if (usd > 0) { income += usd; if (t.stream === "contract") salary += usd; }
         else spend += -usd;
       });
-      return { income: income, spend: spend, salary: salary, net: income - spend };
+      return { income: income, spend: spend, salary: salary, net: income - spend, count: count };
     },
 
     /* --------------------------------------------------------- navigation */
@@ -187,6 +215,7 @@ window.RBU = window.RBU || {};
       ui.haptic("light");
       this.stack = [];
       this.flow = null;
+      this.listLimit = 60;
       this.go(id, {}, { replace: true, reset: true });
     },
 

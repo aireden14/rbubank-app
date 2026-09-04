@@ -23,24 +23,40 @@ window.RBU.views = window.RBU.views || {};
     var cur = accCur(t.account);
     var credit = t.amount > 0;
     return h("div", {
-      class: "row-value" + (credit ? " credit" : ""),
+      class: "row-value" + (credit ? " credit" : "") + (t.status === "declined" ? " is-void" : ""),
       text: ui.money(t.amount, cur, { signed: credit }),
     });
   }
 
+  /* Card payments show the merchant's initials the way a statement does;
+     everything else keeps its category icon, so the two read differently. */
+  var ICON_CATEGORIES = { income: 1, transfer: 1, exchange: 1, savings: 1, crypto: 1, cash: 1, fees: 1, cashback: 1, utilities: 1, housing: 1 };
+
+  function rowGlyph(t) {
+    if (ICON_CATEGORIES[t.category] || t.amount > 0) return ui.glyphFor(t);
+    var bits = String(t.title).replace(/^Refund · /, "").split(/[\s.]+/).filter(Boolean);
+    var initials = ((bits[0] || "?")[0] + (bits[1] ? bits[1][0] : "")).toUpperCase();
+    return h("div.glyph", { text: initials });
+  }
+
+  function subFor(t) {
+    if (t.status === "pending") return "Pending · " + (t.subtitle || t.method);
+    if (t.status === "declined") return "Declined · " + (t.reason || t.method);
+    return ui.timeLabel(t.date) + " · " + (t.subtitle || t.method);
+  }
+
   function txRow(t) {
-    var app = NS.app;
-    var sub = ui.timeLabel(t.date) + " · " + (t.subtitle || t.method);
     return h("button.row", {
       type: "button",
       onclick: function () { txSheet(t); },
     }, [
-      ui.glyphFor(t),
+      rowGlyph(t),
       h("div.row-main", {}, [
-        h("div.row-title", { text: t.title }),
-        h("div.row-sub", {}, [
+        h("div.row-title", { class: t.status === "declined" ? "is-void" : "", text: t.title }),
+        h("div.row-sub", { class: t.status === "declined" ? "is-bad" : "" }, [
           t.status === "pending" ? h("span.status-dot") : null,
-          t.status === "pending" ? "Pending · " + (t.subtitle || t.method) : sub,
+          t.status === "declined" ? h("span.status-dot.is-bad") : null,
+          subFor(t),
         ]),
       ]),
       h("div.row-end", {}, [
@@ -74,17 +90,21 @@ window.RBU.views = window.RBU.views || {};
     var cur = accCur(t.account);
     var acc = app.account(t.account);
     var cat = data.categories[t.category] || { label: "Other" };
+    var STATUS = { pending: "Pending", declined: "Declined", completed: "Completed" };
     var rows = [
-      ["Status", t.status === "pending" ? "Pending" : "Completed"],
+      ["Status", STATUS[t.status] || "Completed"],
       ["Date", ui.fullDate(t.date)],
       ["Method", t.method],
       ["Account", acc.name + " · " + acc.currency],
       ["Category", cat.label],
-      ["Reference", t.ref],
     ];
+    if (t.card) rows.push(["Card", "RBU •••• " + t.card]);
+    if (t.city) rows.push(["Where", t.city]);
     if (t.fee) rows.push(["Fee", ui.money(-t.fee, cur)]);
     if (t.fx) rows.push(["Exchange rate", "1 " + t.fx.from + " = " + t.fx.rate.toFixed(4) + " " + t.fx.to]);
+    if (t.reason) rows.push(["Why it failed", t.reason]);
     if (t.note) rows.push(["Note", t.note]);
+    rows.push(["Reference", t.ref]);
 
     var body = h("div.stack", {}, [
       h("div", { style: "display:flex;flex-direction:column;align-items:center;gap:10px;padding:4px 0 6px" }, [
@@ -244,7 +264,10 @@ window.RBU.views = window.RBU.views || {};
     });
 
     var pending = ledger.filter(function (t) { return t.status === "pending" && t.amount > 0; })[0];
-    var stats = app.stats(12);
+    var stats = app.stats("1y");
+    /* The monthly budget is derived from how this account actually behaves,
+       rounded to a number a human would have picked. */
+    var budget = Math.max(1000, Math.ceil((stats.spend / 12) * 1.08 / 500) * 500);
 
     var accountChips = h("div.scroll-row", {}, data.accounts.map(function (a) {
       var tag = a.kind === "savings" ? "Vault" : a.kind === "crypto" ? "Bitcoin" : a.id === "usd" ? "Main" : a.currency;
@@ -302,7 +325,7 @@ window.RBU.views = window.RBU.views || {};
         h("div.stat", {}, [
           h("div.stat-label", { text: "Money out · 30 days" }),
           h("div.stat-value", { text: ui.money(outMonth, "USD", { round: true }) }),
-          h("div.stat-sub", { text: "Budget $4,500 · " + Math.round((outMonth / 4500) * 100) + "% used" }),
+          h("div.stat-sub", { text: "Budget " + ui.money(budget, "USD", { round: true }) + " · " + Math.round((outMonth / budget) * 100) + "% used" }),
         ]),
       ]),
 
@@ -372,7 +395,7 @@ window.RBU.views = window.RBU.views || {};
   function incomeChart(app) {
     var buckets = {};
     app.ledger().forEach(function (t) {
-      if (t.category !== "income" || t.account !== "usd" || t.status === "pending") return;
+      if (t.stream !== "contract" || t.status !== "completed") return;
       var k = ui.monthKey(t.date);
       buckets[k] = (buckets[k] || 0) + t.amount;
     });
@@ -393,52 +416,126 @@ window.RBU.views = window.RBU.views || {};
     { id: "all", label: "All" },
     { id: "income", label: "Income" },
     { id: "card", label: "Card" },
+    { id: "subs", label: "Subscriptions" },
     { id: "transfer", label: "Transfers" },
-    { id: "cash", label: "Withdrawals" },
+    { id: "cash", label: "Cash & payouts" },
     { id: "exchange", label: "Exchange" },
     { id: "pending", label: "Pending" },
+    { id: "declined", label: "Declined" },
+  ];
+
+  var PERIODS = [
+    { id: "1m", label: "1M", long: "last month" },
+    { id: "3m", label: "3M", long: "last 3 months" },
+    { id: "6m", label: "6M", long: "last 6 months" },
+    { id: "1y", label: "1Y", long: "last 12 months" },
+    { id: "all", label: "All", long: "all time" },
   ];
 
   function matches(t, filter, query) {
     if (query) {
       var q = query.toLowerCase();
-      var hay = (t.title + " " + t.subtitle + " " + t.method + " " + t.ref).toLowerCase();
+      var hay = (t.title + " " + t.subtitle + " " + t.method + " " + t.ref + " " + t.city + " " + Math.abs(t.amount)).toLowerCase();
       if (hay.indexOf(q) === -1) return false;
     }
     if (filter === "all") return true;
     if (filter === "income") return t.amount > 0 && (t.category === "income" || t.category === "cashback");
     if (filter === "card") return (t.method || "").indexOf("ard") > -1;
+    if (filter === "subs") return t.category === "subscriptions" || t.category === "software" || (t.method || "").indexOf("Direct debit") > -1;
     if (filter === "transfer") return t.category === "transfer" || t.category === "savings";
-    if (filter === "cash") return t.category === "cash" || (t.category === "transfer" && t.title.indexOf("Withdraw") === 0);
+    if (filter === "cash") return t.category === "cash";
     if (filter === "exchange") return t.category === "exchange" || t.category === "crypto";
     if (filter === "pending") return t.status === "pending";
+    if (filter === "declined") return t.status === "declined";
     return true;
   }
 
-  V.activity = function (app) {
-    var items = app.ledger().filter(function (t) { return matches(t, app.filter, app.query); });
-    var listWrap = h("div", {}, txList(items, { limit: 220 }));
+  function periodLabel(id) {
+    var p = PERIODS.filter(function (x) { return x.id === id; })[0];
+    return p ? p.long : "last 12 months";
+  }
 
-    /* Internal moves (vault, FX, crypto) are not income or spending — counting
-       them would inflate both sides of the summary. */
-    var INTERNAL = { savings: 1, exchange: 1, crypto: 1 };
-    var totals = items.reduce(function (acc, t) {
+  /* Totals ignore internal moves — counting a vault top-up as both income and
+     spending is the fastest way to lose an investor's trust in the numbers. */
+  var INTERNAL = { savings: 1, exchange: 1, crypto: 1 };
+
+  function summarise(items) {
+    return items.reduce(function (acc, t) {
       var cur = accCur(t.account);
-      if (cur === "BTC" || t.status === "pending" || INTERNAL[t.category]) return acc;
+      if (cur === "BTC" || t.status !== "completed") return acc;
+      acc.count += 1;
+      if (INTERNAL[t.category]) return acc;
       var usd = t.amount * (data.rates[cur] || 1);
       if (usd > 0) acc.in += usd; else acc.out += -usd;
       return acc;
-    }, { in: 0, out: 0 });
+    }, { in: 0, out: 0, count: 0 });
+  }
 
-    function refresh() {
-      var next = app.ledger().filter(function (t) { return matches(t, app.filter, app.query); });
-      ui.clear(listWrap).appendChild(txList(next, { limit: 220 }));
+  V.activity = function (app) {
+    function current() {
+      return app.ledger().filter(function (t) {
+        return app.inPeriod(t) && matches(t, app.filter, app.query);
+      });
     }
+
+    var items = current();
+    var totals = summarise(items);
+    var listWrap = h("div", {});
+    var summaryWrap = h("div.stat-grid", {});
+
+    function paintList() {
+      var next = current();
+      ui.clear(listWrap);
+      listWrap.appendChild(txList(next, { limit: app.listLimit }));
+      if (next.length > app.listLimit) {
+        listWrap.appendChild(h("button.btn.btn-ghost", {
+          type: "button",
+          style: "margin-top:14px",
+          onclick: function () { app.listLimit += 80; paintList(); paintSummary(); },
+          text: "Show more · " + (next.length - app.listLimit) + " left",
+        }));
+      }
+      paintSummary(next);
+    }
+
+    function paintSummary(next) {
+      var list = next || current();
+      var t = summarise(list);
+      ui.clear(summaryWrap);
+      /* Declined payments are excluded from every total, so the summary would
+         read as two zeroes — show what was attempted instead. */
+      if (app.filter === "declined") {
+        var attempted = list.reduce(function (sum, x) { return sum + Math.abs(x.amount) * (data.rates[accCur(x.account)] || 1); }, 0);
+        summaryWrap.appendChild(h("div.stat", {}, [
+          h("div.stat-label", { text: "Declined · " + periodLabel(app.period) }),
+          h("div.stat-value", { text: String(list.length) }),
+          h("div.stat-sub", { text: "None of these left your account" }),
+        ]));
+        summaryWrap.appendChild(h("div.stat", {}, [
+          h("div.stat-label", { text: "Attempted" }),
+          h("div.stat-value", { text: ui.money(attempted, "USD", { round: true }) }),
+          h("div.stat-sub", { text: "Blocked by limits or 3-D Secure" }),
+        ]));
+        return;
+      }
+      summaryWrap.appendChild(h("div.stat", {}, [
+        h("div.stat-label", { text: "In · " + periodLabel(app.period) }),
+        h("div.stat-value.credit", { text: ui.money(t.in, "USD", { round: true }) }),
+        h("div.stat-sub", { text: t.count + " transactions" }),
+      ]));
+      summaryWrap.appendChild(h("div.stat", {}, [
+        h("div.stat-label", { text: "Out" }),
+        h("div.stat-value", { text: ui.money(t.out, "USD", { round: true }) }),
+        h("div.stat-sub", { text: "Net " + ui.money(t.in - t.out, "USD", { round: true, signed: t.in > t.out }) }),
+      ]));
+    }
+
+    paintList();
 
     return screen([
       h("div.head", {}, [
         h("div", {}, [
-          h("div.eyebrow", { text: "Ledger" }),
+          h("div.eyebrow", { text: items.length + " of " + app.ledger().length + " transactions" }),
           h("h1.head-title", { text: "Activity" }),
         ]),
         h("button.icon-btn", { type: "button", "aria-label": "Statement", onclick: function () { app.go("statements"); } }, ui.icon("doc", 20)),
@@ -447,34 +544,28 @@ window.RBU.views = window.RBU.views || {};
         ui.icon("search", 18),
         h("input", {
           type: "search",
-          placeholder: "Search merchant, person, reference",
+          placeholder: "Search merchant, person, amount",
           value: app.query,
-          oninput: function (e) { app.query = e.target.value; refresh(); },
+          oninput: function (e) { app.query = e.target.value; app.listLimit = 60; paintList(); },
         }),
       ]),
+      h("div.segmented", {}, PERIODS.map(function (p) {
+        return h("button", {
+          class: "segment" + (app.period === p.id ? " is-on" : ""),
+          type: "button",
+          text: p.label,
+          onclick: function () { app.period = p.id; app.listLimit = 60; ui.haptic("light"); app.render(); },
+        });
+      })),
       h("div.scroll-row", {}, FILTERS.map(function (f) {
-        var btn = h("button", {
+        return h("button", {
           class: "pill" + (app.filter === f.id ? " is-on" : ""),
           type: "button",
           text: f.label,
-          onclick: function () {
-            app.filter = f.id;
-            ui.haptic("light");
-            app.render();
-          },
+          onclick: function () { app.filter = f.id; app.listLimit = 60; ui.haptic("light"); app.render(); },
         });
-        return btn;
       })),
-      h("div.stat-grid", {}, [
-        h("div.stat", {}, [
-          h("div.stat-label", { text: "In" }),
-          h("div.stat-value.credit", { text: ui.money(totals.in, "USD", { round: true }) }),
-        ]),
-        h("div.stat", {}, [
-          h("div.stat-label", { text: "Out" }),
-          h("div.stat-value", { text: ui.money(totals.out, "USD", { round: true }) }),
-        ]),
-      ]),
+      summaryWrap,
       listWrap,
       ui.footerNote(),
     ]);
@@ -559,6 +650,21 @@ window.RBU.views = window.RBU.views || {};
   V.account = function (app, params) {
     var acc = app.account(params.id) || data.accounts[0];
     var items = app.ledger().filter(function (t) { return t.account === acc.id; });
+    var shown = 40;
+    var listWrap = h("div", {});
+
+    function paint() {
+      ui.clear(listWrap);
+      listWrap.appendChild(txList(items, { limit: shown }));
+      if (items.length > shown) {
+        listWrap.appendChild(h("button.btn.btn-ghost", {
+          type: "button", style: "margin-top:14px",
+          onclick: function () { shown += 60; paint(); },
+          text: "Show more · " + (items.length - shown) + " left",
+        }));
+      }
+    }
+    paint();
     return screen([
       ui.backBtn(function () { app.back(); }),
       h("div.hero", {}, [
@@ -573,8 +679,8 @@ window.RBU.views = window.RBU.views || {};
         quick("Details", "doc", function () { app.go("details"); }),
       ]),
       h("div", {}, [
-        sectionHead("Transactions", null),
-        txList(items, { limit: 60 }),
+        sectionHead(items.length + " transactions", null),
+        listWrap,
       ]),
       ui.footerNote(),
     ]);
@@ -583,40 +689,65 @@ window.RBU.views = window.RBU.views || {};
   /* ----------------------------------------------------------- analytics */
 
   V.analytics = function (app) {
-    var stats = app.stats(12);
-    var byMonth = {};
+    var stats = app.stats(app.period);
+    var byBucket = {};
     var byCat = {};
     var byMerchant = {};
+    var biggest = null;
+    var weekly = app.period === "1m";
+
+    /* One month of data is too thin for monthly bars, so it gets weeks. */
+    function bucketOf(dateStr) {
+      if (!weekly) return ui.monthKey(dateStr);
+      var days = Math.floor((data.TODAY.getTime() - new Date(dateStr).getTime()) / 864e5);
+      var w = Math.min(4, Math.floor(days / 7));
+      return "W" + (4 - w);
+    }
+    function bucketLabel(key) { return weekly ? key : ui.monthShort(key); }
+
     app.ledger().forEach(function (t) {
       var cur = accCur(t.account);
-      if (cur === "BTC" || t.status === "pending") return;
+      if (cur === "BTC" || t.status !== "completed" || !app.inPeriod(t)) return;
       var usd = t.amount * (data.rates[cur] || 1);
-      var k = ui.monthKey(t.date);
-      byMonth[k] = byMonth[k] || { in: 0, out: 0 };
-      if (t.category === "savings" || t.category === "exchange" || t.category === "crypto") return;
-      if (usd > 0) byMonth[k].in += usd;
+      var k = bucketOf(t.date);
+      byBucket[k] = byBucket[k] || { in: 0, out: 0 };
+      if (INTERNAL[t.category]) return;
+      if (usd > 0) byBucket[k].in += usd;
       else {
-        byMonth[k].out += -usd;
+        byBucket[k].out += -usd;
         byCat[t.category] = (byCat[t.category] || 0) + -usd;
         byMerchant[t.title] = (byMerchant[t.title] || 0) + -usd;
+        if (!biggest || -usd > -biggest.amount) biggest = t;
       }
     });
-    var months = Object.keys(byMonth).sort().slice(-12);
-    var max = months.reduce(function (m, k) { return Math.max(m, byMonth[k].in, byMonth[k].out); }, 1);
+
+    var buckets = Object.keys(byBucket).sort();
+    var max = buckets.reduce(function (m, k) { return Math.max(m, byBucket[k].in, byBucket[k].out); }, 1);
 
     var cats = Object.keys(byCat).map(function (k) { return { k: k, v: byCat[k] }; })
-      .sort(function (a, b) { return b.v - a.v; }).slice(0, 8);
+      .sort(function (a, b) { return b.v - a.v; }).slice(0, 10);
     var catMax = cats.length ? cats[0].v : 1;
+    var catTotal = cats.reduce(function (sum, c) { return sum + c.v; }, 0);
 
     var merchants = Object.keys(byMerchant).map(function (k) { return { k: k, v: byMerchant[k] }; })
-      .sort(function (a, b) { return b.v - a.v; }).slice(0, 6);
+      .sort(function (a, b) { return b.v - a.v; }).slice(0, 8);
+
+    var days = { "1m": 30, "3m": 91, "6m": 183, "1y": 365, all: 366 }[app.period] || 365;
 
     return screen([
       ui.backBtn(function () { app.back(); }),
       h("div.head", {}, h("div", {}, [
-        h("div.eyebrow", { text: "Last 12 months" }),
+        h("div.eyebrow", { text: periodLabel(app.period) }),
         h("h1.head-title", { text: "Analytics" }),
       ])),
+      h("div.segmented", {}, PERIODS.map(function (p) {
+        return h("button", {
+          class: "segment" + (app.period === p.id ? " is-on" : ""),
+          type: "button",
+          text: p.label,
+          onclick: function () { app.period = p.id; ui.haptic("light"); app.render(); },
+        });
+      })),
       h("div.stat-grid", {}, [
         h("div.stat", {}, [
           h("div.stat-label", { text: "Total in" }),
@@ -626,7 +757,7 @@ window.RBU.views = window.RBU.views || {};
         h("div.stat", {}, [
           h("div.stat-label", { text: "Total out" }),
           h("div.stat-value", { text: ui.money(stats.spend, "USD", { round: true }) }),
-          h("div.stat-sub", { text: "Avg " + ui.money(stats.spend / 12, "USD", { round: true }) + " / month" }),
+          h("div.stat-sub", { text: ui.money(stats.spend / (days / 30.4), "USD", { round: true }) + " / month" }),
         ]),
         h("div.stat", {}, [
           h("div.stat-label", { text: "Saved" }),
@@ -634,21 +765,21 @@ window.RBU.views = window.RBU.views || {};
           h("div.stat-sub", { text: Math.round((stats.net / Math.max(stats.income, 1)) * 100) + "% of income" }),
         ]),
         h("div.stat", {}, [
-          h("div.stat-label", { text: "Vault" }),
-          h("div.stat-value", { text: ui.money(app.balance("vault"), "USD", { round: true }) }),
-          h("div.stat-sub", { text: "4.15% APY" }),
+          h("div.stat-label", { text: "Transactions" }),
+          h("div.stat-value", { text: String(stats.count) }),
+          h("div.stat-sub", { text: (stats.count / (days / 30.4)).toFixed(0) + " / month" }),
         ]),
       ]),
       h("div.card", {}, [
         h("div.card-title", { text: "In vs out" }),
-        h("div.chart", {}, months.map(function (k) {
-          var b = byMonth[k];
-          return h("div.chart-col", { title: ui.monthLabel(k) }, [
+        h("div.chart", {}, buckets.map(function (k) {
+          var b = byBucket[k];
+          return h("div.chart-col", { title: k }, [
             h("div", { style: "display:flex;align-items:flex-end;gap:3px;height:100%;width:100%" }, [
-              h("div.chart-bar.is-credit", { style: "height:" + Math.max(4, (b.in / max) * 100) + "%" }),
-              h("div.chart-bar", { style: "height:" + Math.max(4, (b.out / max) * 100) + "%" }),
+              h("div.chart-bar.is-credit", { style: "height:" + Math.max(3, (b.in / max) * 100) + "%" }),
+              h("div.chart-bar", { style: "height:" + Math.max(3, (b.out / max) * 100) + "%" }),
             ]),
-            h("div.chart-x", { text: ui.monthShort(k) }),
+            h("div.chart-x", { text: bucketLabel(k) }),
           ]);
         })),
         h("div.chart-legend", { style: "margin-top:12px" }, [
@@ -660,12 +791,17 @@ window.RBU.views = window.RBU.views || {};
         h("div.card-title", { text: "Where it goes" }),
         h("div.bar-line", {}, cats.map(function (c) {
           var label = (data.categories[c.k] || { label: c.k }).label;
-          return h("div.bar-item", {}, [
+          return h("button.bar-item", {
+            type: "button",
+            style: "background:none;border:0;padding:0;font-family:inherit;color:inherit;cursor:pointer;width:100%",
+            onclick: function () { categorySheet(app, c.k); },
+          }, [
             h("div.bar-name", { text: label }),
             h("div.bar-track", {}, h("div.bar-fill", { style: "width:" + Math.max(4, (c.v / catMax) * 100) + "%" })),
             h("div.bar-val", { text: ui.money(c.v, "USD", { round: true }) }),
           ]);
         })),
+        h("div.row-sub", { style: "margin-top:12px", text: "Top 10 categories · " + ui.money(catTotal, "USD", { round: true }) + " of " + ui.money(stats.spend, "USD", { round: true }) + " spent" }),
       ]),
       h("div.card", {}, [
         h("div.card-title", { text: "Top merchants" }),
@@ -677,9 +813,25 @@ window.RBU.views = window.RBU.views || {};
           ]);
         })),
       ]),
+      biggest ? h("div.card", {}, [
+        h("div.card-title", { text: "Biggest single payment" }),
+        txRow(biggest),
+      ]) : null,
       ui.footerNote(),
     ]);
   };
+
+  /* Tapping a category bar opens everything inside it — the question every
+     spending chart provokes. */
+  function categorySheet(app, key) {
+    var cat = data.categories[key] || { label: key };
+    var items = app.ledger().filter(function (t) {
+      return t.category === key && t.status === "completed" && app.inPeriod(t) && t.amount < 0;
+    });
+    var total = items.reduce(function (s, t) { return s + -t.amount * (data.rates[accCur(t.account)] || 1); }, 0);
+    ui.sheet(cat.label, ui.money(total, "USD") + " across " + items.length + " payments · " + periodLabel(app.period),
+      txList(items, { flat: true, limit: 40 }));
+  }
 
   NS.components = { screen: screen, txRow: txRow, txList: txList, txSheet: txSheet, quick: quick, sectionHead: sectionHead, accCur: accCur };
 })(window.RBU);

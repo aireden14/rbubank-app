@@ -7,15 +7,19 @@ Pure static HTML/CSS/JS: no build step, no backend, no dependencies. Open `index
 
 ## What's inside
 
-**Personal cabinet — Denis Rechkin.** Passcode unlock (any 4 digits, or Face ID), Metal plan, KYC verified.
+**Personal cabinet — Denis Reshetov.** Passcode unlock (any 4 digits, or Face ID), Metal plan, KYC verified.
 
 **Home.** Total balance across five accounts, account switcher, eight quick actions, incoming-payment banner, 30-day money in/out, card widget, recent activity, 12-month income chart, savings vault.
 
-**Incoming.** Twelve monthly contract payments of $6,050–$7,400 that add up to exactly **$80,000 over the year**, from three European payers via SWIFT and SEPA — plus cashback, refunds, vault interest and inbound peer transfers.
+**Incoming.** Twelve monthly contract payments of $6,050–$7,400 that add up to exactly **$80,000 over the year**, from three European payers via SWIFT and SEPA — plus marketplace payouts, contract milestones, dividends, a tax refund, cashback, referral bonuses, card refunds, vault interest and inbound peer transfers.
 
-**Outgoing.** Rent standing order, direct debits, subscriptions, groceries, restaurants, transport, travel, health, shopping, ATM cash, quarterly payouts to an external bank, FX conversions, crypto buys and fees. ~450 transactions across thirteen months.
+**Outgoing.** Rent standing order, utilities and direct debits, ten subscriptions, groceries, coffee, restaurants, food delivery, transport, fuel and parking, shopping, electronics, entertainment, beauty, health, education, donations, gifts, travel with foreign-currency spending, ATM cash in four cities, payouts to an external bank, FX conversions, crypto buys and fees.
+
+**~1,170 transactions across thirteen months in 26 categories**, with three statuses that behave differently: completed, pending (an authorisation hold leaves the available balance immediately, an incoming payment does not) and declined (struck through, never touches the balance, with the reason attached).
 
 **Transfer menu.** To an RBU user, to a bank account, international SWIFT, to your own card, request money, split a bill, account details, scheduled payments, add money, exchange, withdraw.
+
+**Periods.** Activity and Analytics both switch between 1M / 3M / 6M / 1Y / All — totals, charts, categories and merchants all recompute. Activity also filters by type (income, card, subscriptions, transfers, cash, exchange, pending, declined), searches by merchant, person, reference or amount, and pages through the ledger 80 rows at a time. Tapping a category bar in Analytics opens every payment inside it.
 
 **Working flows** (they change the balance and write to the ledger):
 send money (recipient → amount → confirm → receipt), add money, withdraw, FX exchange, vault deposit/withdraw, crypto buy, card freeze/unfreeze, reveal card details, split a bill, request money.
