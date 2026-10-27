@@ -331,7 +331,7 @@ window.RBU.views = window.RBU.views || {};
     /* The monthly run, not a bonus that happened to land the same morning. */
     var runs = app.ledger().filter(function (t) { return t.stream === "salary" && t.status === "completed"; });
     var last = runs[0];
-    var next = data.employer.payDay + " Oct 2026";
+    var next = data.employer.payDay + " Nov 2026";
     return h("button.card", {
       type: "button",
       style: "width:100%;text-align:left;font-family:inherit;color:inherit;cursor:pointer",

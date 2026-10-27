@@ -455,7 +455,7 @@ window.RBU.views = window.RBU.views || {};
       { icon: "shield", tone: "accent", title: "New login", sub: "MacBook Pro · Limassol, Cyprus", when: "Yesterday" },
       { icon: "vault", tone: "accent", title: "Vault interest paid", sub: "$68.41 added to your Savings vault", when: "3 days ago" },
       { icon: "star", tone: "credit", title: "Cashback earned", sub: "$18.20 from Metal cashback", when: "5 days ago" },
-      { icon: "repeat", tone: "", title: "Standing order due", sub: "Seaside Residences · $1,450.00 on 3 Oct", when: "Last week" },
+      { icon: "repeat", tone: "", title: "Standing order due", sub: "Seaside Residences · $1,450.00 on 3 Nov", when: "Upcoming" },
     ];
     return screen([
       ui.backBtn(function () { app.back(); }),

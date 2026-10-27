@@ -7,7 +7,7 @@ window.RBU = window.RBU || {};
 (function (NS) {
   "use strict";
 
-  var TODAY = new Date(Date.UTC(2026, 8, 2)); // 2 Sep 2026 — end of the demo year
+  var TODAY = new Date(Date.UTC(2026, 9, 27)); // 27 Oct 2026 — end of the demo year
 
   /* ------------------------------------------------------------- profile */
 
@@ -274,18 +274,18 @@ window.RBU = window.RBU || {};
       }));
     }
 
-    for (var i = 0; i < 13; i++) {
+    for (var i = 0; i < 14; i++) {
       var m = (start.m + i) % 12;
       var y = start.y + Math.floor((start.m + i) / 12);
-      var isCurrent = i === 12;          // September 2026 — only the first two days exist
-      var maxDay = isCurrent ? 2 : 28;
-      var scale = isCurrent ? 0.08 : 1;  // the current month is barely started
+      var isCurrent = y === TODAY.getUTCFullYear() && m === TODAY.getUTCMonth();
+      var maxDay = isCurrent ? TODAY.getUTCDate() : 28;
+      var scale = isCurrent ? maxDay / 28 : 1;
       var n = function (base) { return Math.max(0, Math.round(base * scale)); };
       var day = function () { return 1 + Math.floor(rnd() * maxDay); };
 
       /* --- salary · 12 payments · $80,000 net exactly -------------------- */
-      if (!isCurrent) {
-        var net = INCOME_PLAN[i];
+      {
+        var net = INCOME_PLAN[i % INCOME_PLAN.length];
         var periodName = MONTH_NAMES[m] + " " + y;
         out.push(tx({
           date: iso(y, m, employer.payDay, 9, 2),
@@ -305,7 +305,7 @@ window.RBU = window.RBU || {};
 
       /* Payroll is more than the monthly run: bonuses and expenses land here
          too, and they carry the same payslip treatment. */
-      if (!isCurrent && (i === 3 || i === 6 || i === 9 || i === 11)) {
+      if ((i === 3 || i === 6 || i === 9 || i === 11)) {
         var bonusNet = Math.round(money(rnd, 700, 1900) * 100) / 100;
         out.push(tx({
           date: iso(y, m, employer.payDay, 9, 4),
@@ -322,7 +322,7 @@ window.RBU = window.RBU || {};
           note: "Quarterly performance bonus",
         }));
       }
-      if (!isCurrent && m === 11) {
+      if (m === 11) {
         var thirteenth = 3200;
         out.push(tx({
           date: iso(y, m, 20, 9, 0),
@@ -339,7 +339,7 @@ window.RBU = window.RBU || {};
           note: "Statutory 13th salary",
         }));
       }
-      if (!isCurrent && chance(rnd, 0.6)) {
+      if (chance(rnd, 0.6)) {
         out.push(tx({
           date: iso(y, m, 18, 15, 10),
           title: employer.name,
@@ -354,29 +354,29 @@ window.RBU = window.RBU || {};
       }
 
       /* --- other money in ----------------------------------------------- */
-      if (!isCurrent) {
+      {
         out.push(tx({ date: iso(y, m, 27, 22, 0), title: "Metal cashback", subtitle: "1% on card spend", amount: money(rnd, 8, 32), category: "cashback", type: "credit", method: "Rewards" }));
         out.push(tx({ date: iso(y, m, 28, 23, 0), title: "Vault interest", subtitle: "4.15% APY · paid monthly", amount: money(rnd, 52, 82), category: "income", account: "vault", method: "Interest", type: "credit" }));
       }
-      if (!isCurrent && chance(rnd, 0.45)) {
+      if (chance(rnd, 0.45)) {
         out.push(tx({ date: iso(y, m, day(), 16, 20), title: "Stripe Payouts", subtitle: "Marketplace payout · side project", amount: money(rnd, 180, 940), category: "income", type: "credit", method: "SEPA credit transfer", ref: "PO-" + (4100 + i) }));
       }
-      if (!isCurrent && chance(rnd, 0.3)) {
+      if (chance(rnd, 0.3)) {
         out.push(tx({ date: iso(y, m, day(), 12, 5), title: "Upwork Escrow", subtitle: "Contract milestone released", amount: money(rnd, 240, 1300), category: "income", type: "credit", method: "SWIFT wire transfer", fee: 12 }));
       }
-      if (!isCurrent && (i === 4 || i === 10)) {
+      if ((i === 4 || i === 10)) {
         out.push(tx({ date: iso(y, m, 15, 11, 0), title: "Dividend · Vanguard ETF", subtitle: "Quarterly distribution", amount: money(rnd, 120, 380), category: "income", type: "credit", method: "Dividend" }));
       }
-      if (!isCurrent && i === 7) {
+      if (i === 7) {
         out.push(tx({ date: iso(y, m, 19, 9, 40), title: "Tax refund", subtitle: "Cyprus Tax Department", amount: money(rnd, 380, 720), category: "income", type: "credit", method: "SEPA credit transfer" }));
       }
-      if (!isCurrent && chance(rnd, 0.25)) {
+      if (chance(rnd, 0.25)) {
         out.push(tx({ date: iso(y, m, day(), 14, 30), title: "Referral bonus", subtitle: "A friend joined RBUBANK", amount: 25, category: "cashback", type: "credit", method: "Rewards" }));
       }
 
       /* --- housing & bills ---------------------------------------------- */
       out.push(tx({ date: iso(y, m, 3, 8, 5), title: "Seaside Residences", subtitle: "Standing order · monthly rent", amount: -1450, category: "housing", method: "Standing order" }));
-      if (!isCurrent) {
+      {
         out.push(tx({ date: iso(y, m, 12, 11, 30), title: "EAC Electricity", subtitle: "Direct debit · utilities", amount: -money(rnd, 96, 178), category: "utilities", method: "Direct debit" }));
         out.push(tx({ date: iso(y, m, 13, 11, 35), title: "Water Board Limassol", subtitle: "Direct debit · utilities", amount: -money(rnd, 18, 42), category: "utilities", method: "Direct debit" }));
         out.push(tx({ date: iso(y, m, 9, 12, 10), title: "Cyta Mobile", subtitle: "Direct debit · mobile plan", amount: -24.9, category: "utilities", method: "Direct debit" }));
@@ -389,7 +389,7 @@ window.RBU = window.RBU || {};
       }
 
       /* --- savings ------------------------------------------------------- */
-      if (!isCurrent) {
+      {
         var pid = uid("pair");
         out.push(tx({ date: iso(y, m, 6, 9, 0), title: "Savings vault", subtitle: "Scheduled top-up", amount: -500, category: "savings", method: "Internal transfer", pairId: pid }));
         out.push(tx({ date: iso(y, m, 6, 9, 0), title: "From Main account", subtitle: "Scheduled top-up", amount: 500, category: "savings", account: "vault", method: "Internal transfer", type: "credit", pairId: pid }));
@@ -409,42 +409,42 @@ window.RBU = window.RBU || {};
       for (g = 0; g < n(6 + rnd() * 4); g++) card(y, m, day(), pick(rnd, M.transport), "transport", 3.5, 26);
       for (g = 0; g < n(2 + rnd() * 3); g++) card(y, m, day(), pick(rnd, M.fuel), "fuel", 12, 78);
       for (g = 0; g < n(2 + rnd() * 3); g++) card(y, m, day(), pick(rnd, M.shopping), "shopping", 18, 165);
-      if (!isCurrent && chance(rnd, 0.4)) card(y, m, day(), pick(rnd, M.electronics), "electronics", 40, 430);
+      if (chance(rnd, 0.4)) card(y, m, day(), pick(rnd, M.electronics), "electronics", 40, 430);
       for (g = 0; g < n(1 + rnd() * 3); g++) card(y, m, day(), pick(rnd, M.entertainment), "entertainment", 9, 74);
-      if (!isCurrent && chance(rnd, 0.6)) card(y, m, day(), pick(rnd, M.beauty), "beauty", 18, 120);
-      if (!isCurrent && chance(rnd, 0.5)) card(y, m, day(), pick(rnd, M.health), "health", 12, 165);
-      if (!isCurrent && chance(rnd, 0.4)) card(y, m, day(), pick(rnd, M.education), "education", 12, 190);
-      if (!isCurrent && chance(rnd, 0.3)) card(y, m, day(), pick(rnd, M.charity), "charity", 10, 60);
-      if (!isCurrent && chance(rnd, 0.28)) card(y, m, day(), pick(rnd, M.gifts), "gifts", 25, 180);
+      if (chance(rnd, 0.6)) card(y, m, day(), pick(rnd, M.beauty), "beauty", 18, 120);
+      if (chance(rnd, 0.5)) card(y, m, day(), pick(rnd, M.health), "health", 12, 165);
+      if (chance(rnd, 0.4)) card(y, m, day(), pick(rnd, M.education), "education", 12, 190);
+      if (chance(rnd, 0.3)) card(y, m, day(), pick(rnd, M.charity), "charity", 10, 60);
+      if (chance(rnd, 0.28)) card(y, m, day(), pick(rnd, M.gifts), "gifts", 25, 180);
       for (g = 0; g < n(2 + rnd() * 3); g++) card(y, m, day(), pick(rnd, M.bakery), "groceries", 1.8, 14, { hour: 8 });
       for (g = 0; g < n(1 + rnd() * 2); g++) card(y, m, day(), pick(rnd, M.services), "services", 8, 95);
-      if (!isCurrent && chance(rnd, 0.5)) card(y, m, day(), pick(rnd, M.pets), "pets", 12, 140);
-      if (!isCurrent && chance(rnd, 0.45)) card(y, m, day(), pick(rnd, M.home), "home", 26, 320);
-      if (!isCurrent && chance(rnd, 0.5)) card(y, m, day(), pick(rnd, M.events), "events", 15, 130);
-      if (!isCurrent && chance(rnd, 0.35)) card(y, m, day(), pick(rnd, M.hobby), "hobby", 20, 240);
-      if (!isCurrent && chance(rnd, 0.4)) card(y, m, day(), pick(rnd, M.carservice), "transport", 25, 280);
-      if (!isCurrent && chance(rnd, 0.3)) card(y, m, day(), "Regus Coworking", "services", 90, 240, { note: "Day pass" });
+      if (chance(rnd, 0.5)) card(y, m, day(), pick(rnd, M.pets), "pets", 12, 140);
+      if (chance(rnd, 0.45)) card(y, m, day(), pick(rnd, M.home), "home", 26, 320);
+      if (chance(rnd, 0.5)) card(y, m, day(), pick(rnd, M.events), "events", 15, 130);
+      if (chance(rnd, 0.35)) card(y, m, day(), pick(rnd, M.hobby), "hobby", 20, 240);
+      if (chance(rnd, 0.4)) card(y, m, day(), pick(rnd, M.carservice), "transport", 25, 280);
+      if (chance(rnd, 0.3)) card(y, m, day(), "Regus Coworking", "services", 90, 240, { note: "Day pass" });
 
       /* Insurance and taxes: the boring rows that make a statement look real. */
-      if (!isCurrent && (m === 2 || m === 8)) {
+      if ((m === 2 || m === 8)) {
         out.push(tx({ date: iso(y, m, 22, 10, 0), title: "Hellas Direct", subtitle: "Car insurance · semi-annual", amount: -money(rnd, 180, 320), category: "insurance", method: "Direct debit" }));
       }
-      if (!isCurrent && m === 6) {
+      if (m === 6) {
         out.push(tx({ date: iso(y, m, 24, 10, 30), title: "Cyprus Tax Department", subtitle: "Self-assessment payment", amount: -money(rnd, 620, 1400), category: "taxes", method: "SEPA credit transfer" }));
       }
-      if (!isCurrent && m === 4) {
+      if (m === 4) {
         out.push(tx({ date: iso(y, m, 8, 11, 15), title: "Road tax · Cyprus", subtitle: "Annual vehicle duty", amount: -142, category: "taxes", method: "SEPA credit transfer" }));
       }
 
       /* A direct debit that bounces and is retried two days later — every real
          statement has one of these. */
-      if (!isCurrent && i === 5) {
+      if (i === 5) {
         out.push(tx({ date: iso(y, m, 12, 11, 30), title: "EAC Electricity", subtitle: "Direct debit returned", amount: -138.4, category: "utilities", method: "Direct debit", status: "declined", reason: "Insufficient funds at the time of collection" }));
         out.push(tx({ date: iso(y, m, 14, 11, 30), title: "EAC Electricity", subtitle: "Direct debit · retried", amount: -138.4, category: "utilities", method: "Direct debit" }));
       }
 
       /* --- travel, seasonal ----------------------------------------------- */
-      if (!isCurrent && (i === 2 || i === 5 || i === 9 || i === 11)) {
+      if ((i === 2 || i === 5 || i === 9 || i === 11)) {
         var away = pick(rnd, CITY_AWAY);
         card(y, m, 8, pick(rnd, ["Aegean Airlines", "Ryanair", "Wizz Air"]), "travel", 145, 430, { city: "Online" });
         card(y, m, 9, "Booking.com", "travel", 210, 590, { city: "Online" });
@@ -472,7 +472,7 @@ window.RBU = window.RBU || {};
       }
 
       /* --- payouts to an external bank, once a quarter --------------------- */
-      if (!isCurrent && (i === 4 || i === 10)) {
+      if ((i === 4 || i === 10)) {
         out.push(tx({
           date: iso(y, m, 20, 14, 10),
           title: "Withdrawal to Bank of Cyprus",
@@ -512,7 +512,7 @@ window.RBU = window.RBU || {};
       }
 
       /* --- FX ------------------------------------------------------------- */
-      if (!isCurrent) {
+      {
         var fxRuns = 1 + (chance(rnd, 0.5) ? 1 : 0);
         for (g = 0; g < fxRuns; g++) {
           var toEur = chance(rnd, 0.7);
@@ -530,18 +530,18 @@ window.RBU = window.RBU || {};
       for (g = 0; g < n(2 + rnd() * 3); g++) {
         card(y, m, day(), pick(rnd, M.dining.concat(M.shopping)), chance(rnd, 0.5) ? "dining" : "shopping", 12, 130, { account: "eur", city: pick(rnd, CITY_AWAY) });
       }
-      if (!isCurrent && chance(rnd, 0.45)) {
+      if (chance(rnd, 0.45)) {
         card(y, m, day(), pick(rnd, ["Marks & Spencer", "Waterstones", "Tesco", "Pret A Manger"]), "shopping", 9, 120, { account: "gbp", city: "London, UK" });
       }
 
       /* --- crypto ---------------------------------------------------------- */
-      if (!isCurrent && i === 8) {
+      if (i === 8) {
         var sellUsd = money(rnd, 200, 500);
         var sellPair = uid("pair");
         out.push(tx({ date: iso(y, m, 23, 20, 10), title: "Sold Bitcoin", subtitle: "BTC @ $" + rates.BTC.toLocaleString("en-US"), amount: sellUsd, category: "crypto", method: "Instant sell", type: "credit", pairId: sellPair }));
         out.push(tx({ date: iso(y, m, 23, 20, 10), title: "Bitcoin sale", subtitle: "Settled to Main account", amount: -(sellUsd / rates.BTC), account: "btc", category: "crypto", method: "Instant sell", pairId: sellPair }));
       }
-      if (!isCurrent && (i % 3 === 1)) {
+      if ((i % 3 === 1)) {
         var buy = money(rnd, 120, 420);
         var btcPair = uid("pair");
         out.push(tx({ date: iso(y, m, 17, 21, 5), title: "Bought Bitcoin", subtitle: "BTC @ $" + rates.BTC.toLocaleString("en-US"), amount: -buy, category: "crypto", method: "Instant buy", pairId: btcPair }));
@@ -549,14 +549,14 @@ window.RBU = window.RBU || {};
       }
 
       /* --- refunds, declines, fees ------------------------------------------ */
-      if (!isCurrent && chance(rnd, 0.5)) {
+      if (chance(rnd, 0.5)) {
         out.push(tx({
           date: iso(y, m, day(), 11, 0), title: "Refund · " + pick(rnd, M.shopping),
           subtitle: "Card refund · returned item", amount: money(rnd, 18, 190),
           category: "shopping", type: "credit", method: "Card refund", card: cards[0].last4,
         }));
       }
-      if (!isCurrent && chance(rnd, 0.42)) {
+      if (chance(rnd, 0.42)) {
         out.push(tx({
           date: iso(y, m, day(), 15, 40), title: pick(rnd, M.electronics.concat(M.travel)),
           subtitle: "Payment declined", amount: -money(rnd, 40, 480),
@@ -564,30 +564,28 @@ window.RBU = window.RBU || {};
           card: cards[1].last4, reason: pick(rnd, ["Card limit exceeded", "3-D Secure not completed", "Merchant not allowed on this card"]),
         }));
       }
-      if (!isCurrent && i % 4 === 3) {
+      if (i % 4 === 3) {
         out.push(tx({ date: iso(y, m, 25, 9, 30), title: "International transfer fee", subtitle: "SWIFT · out of plan allowance", amount: -15, category: "fees", method: "Fee" }));
       }
-      if (!isCurrent && i === 6) {
+      if (i === 6) {
         out.push(tx({ date: iso(y, m, 14, 10, 10), title: "Card delivery", subtitle: "Metal card · express courier", amount: -12, category: "fees", method: "Fee" }));
       }
     }
 
     /* --- live state for the demo ------------------------------------------- */
     out.push(tx({
-      date: iso(2026, 8, 2, 8, 40), title: "Aegean Airlines", subtitle: "Authorisation hold",
+      date: iso(2026, 9, 27, 8, 40), title: "Aegean Airlines", subtitle: "Authorisation hold",
       amount: -298.4, category: "travel", status: "pending", card: cards[0].last4, city: "Online",
     }));
     out.push(tx({
-      date: iso(2026, 8, 2, 9, 2), title: employer.name,
-      subtitle: "Salary · September 2026", amount: 6700, category: "salary",
-      method: "Salary payment · SEPA credit transfer", type: "credit", status: "pending",
-      ref: "PAYROLL/2026-09", stream: "salary", counterparty: employer.iban,
-      payslip: payslipFor(6700, "September 2026"),
-      note: "Monthly salary · arriving today",
+      date: iso(2026, 9, 27, 9, 2), title: "Helios Labs GmbH",
+      subtitle: "Contract payment · October 2026", amount: 6700, category: "income",
+      method: "SEPA credit transfer", type: "credit", status: "pending",
+      ref: "CT-2026-10",
+      note: "Contract payment · arriving today",
     }));
 
-    /* Nothing in a bank statement is dated in the future — the current month is
-       only two days old, so anything past today is dropped. */
+    /* Keep the current month complete through TODAY; drop later scheduled rows. */
     var horizon = new Date(TODAY.getTime() + 86399e3).toISOString();
     out = out.filter(function (t) { return t.date <= horizon; });
 
@@ -598,13 +596,13 @@ window.RBU = window.RBU || {};
   /* ------------------------------------------------------- scheduled ops */
 
   var scheduled = [
-    { id: "s1", title: "Seaside Residences", sub: "Rent · standing order", amount: -1450, next: "3 Oct 2026", every: "Monthly" },
-    { id: "s2", title: "Savings vault", sub: "Auto top-up", amount: -500, next: "6 Oct 2026", every: "Monthly" },
-    { id: "s3", title: "EAC Electricity", sub: "Direct debit", amount: -142.6, next: "12 Oct 2026", every: "Monthly" },
-    { id: "s4", title: "Primetel Fibre", sub: "Direct debit", amount: -32.5, next: "10 Oct 2026", every: "Monthly" },
-    { id: "s5", title: "Netflix", sub: "Subscription", amount: -15.49, next: "14 Oct 2026", every: "Monthly" },
-    { id: "s6", title: "Cyta Mobile", sub: "Direct debit", amount: -24.9, next: "9 Oct 2026", every: "Monthly" },
-    { id: "s7", title: "Allianz Insurance", sub: "Health cover", amount: -46.2, next: "16 Oct 2026", every: "Monthly" },
+    { id: "s1", title: "Seaside Residences", sub: "Rent · standing order", amount: -1450, next: "3 Nov 2026", every: "Monthly" },
+    { id: "s2", title: "Savings vault", sub: "Auto top-up", amount: -500, next: "6 Nov 2026", every: "Monthly" },
+    { id: "s3", title: "EAC Electricity", sub: "Direct debit", amount: -142.6, next: "12 Nov 2026", every: "Monthly" },
+    { id: "s4", title: "Primetel Fibre", sub: "Direct debit", amount: -32.5, next: "10 Nov 2026", every: "Monthly" },
+    { id: "s5", title: "Netflix", sub: "Subscription", amount: -15.49, next: "14 Nov 2026", every: "Monthly" },
+    { id: "s6", title: "Cyta Mobile", sub: "Direct debit", amount: -24.9, next: "9 Nov 2026", every: "Monthly" },
+    { id: "s7", title: "Allianz Insurance", sub: "Health cover", amount: -46.2, next: "16 Nov 2026", every: "Monthly" },
   ];
 
   NS.data = {
